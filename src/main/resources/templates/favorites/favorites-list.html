@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <div th:include="fragments.html :: head" th:remove="tag"></div>
+    <link rel="stylesheet" href="/css/mypage.css">
+</head>
+<body>
+
+<div th:replace="fragments.html :: main-nav"></div>
+<div class="mypage">
+    <div th:replace="fragments.html :: mypage-nav"></div>
+    <div class="mypage-contents">
+        <div class="paragraph-title">
+            <h2>즐겨찾기 목록</h2>
+        </div>
+        <div class="mypage-content-wrapper">
+            <div class="container-fluid favorites-list-container">
+                <div th:if="${favoritesProductList.isEmpty()}" class="none-item">즐겨찾기로 등록한 상품이 없습니다.</div>
+                <div th:if="${!favoritesProductList.isEmpty()}" class="row row-cols-lg-3 row-cols-2">
+                    <div th:each="p : ${favoritesProductList}" class="col product-card-wrapper">
+                        <div class="card product-card">
+                            <a th:href="@{'/product/' + ${p.id}}">
+                                <div>
+                                    <button type="button" class="btn-close" aria-label="Close" th:data-product-id="${p.id}"></button>
+                                    <div class="product-card-thumbnail-container">
+                                        <img th:src="${#strings.isEmpty(p.thumbnail) ? '/images/no_image.png' : p.thumbnail}" class="product-card-thumbnail" alt="&times;" />
+                                    </div>
+                                </div>
+                                <div class="card-body">
+                                    <h5 class="card-title" th:text="${p.name}"></h5>
+                                    <p class="card-text">
+                                        <div><span th:text="${p.mainCategory}"></span> / <span th:text="${p.subCategory.getName()}"></span></div>
+                                        <div th:replace="fragments.html :: price-container(product = ${p})"></div>
+                                        <i class="fa fa-commenting-o" aria-hidden="true"></i> <span th:text="${p.reviewCount}"></span>
+                                        <i class="fa fa-heart ps-3" aria-hidden="true"></i> <span th:text="${p.favoritesCount}"></span>
+                                    </p>
+                                </div>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div th:replace="fragments.html :: main-footer"></div>
+<div th:include="fragments.html :: common-js-func" th:remove="tag"></div>
+<div th:replace="fragments.html :: price-with-comma"></div>
+<div th:replace="fragments.html :: ajax-csrf-header"></div>
+<div th:replace="fragments.html :: ajax-feedback-message"></div>
+<script type="application/javascript" th:inline="javascript">
+    $(function () {
+        const $favoritesListContainer = $(".favorites-list-container");
+        const $removeBtn = $(".product-card .btn-close");
+        const $myFavoritesCount = $("nav.mypage-nav .favorites-count");
+
+        /*<![CDATA[*/
+
+        let favoritesProductCount = /*[[${favoritesProductList.size()}]]*/;
+
+        /*]]>*/
+
+        $removeBtn.click(function (e) {
+            e.preventDefault();
+            $.ajax({
+                method: "POST",
+                url: "/favorites/product/" + e.currentTarget.dataset.productId + "/remove"
+            }).done(function (data, status) {
+                favoritesProductCount--;
+                $myFavoritesCount.text(favoritesProductCount);
+                if (favoritesProductCount > 0) {
+                    $(e.currentTarget).closest('.product-card-wrapper').remove();
+                } else {
+                    const $noneItem = $(`<div class="none-item">즐겨찾기로 등록한 상품이 없습니다.</div>`);
+                    $favoritesListContainer.html($noneItem);
+                }
+            }).fail(function (jqXHR, textStatus, errorThrown) {
+                setFeedback(jqXHR);
+            });
+        });
+    });
+</script>
+
+</body>
+</html>

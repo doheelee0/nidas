@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <div th:include="fragments.html :: head" th:remove="tag"></div>
+    <link rel="stylesheet" href="/css/mypage.css">
+</head>
+<body>
+
+<div th:replace="fragments.html :: main-nav"></div>
+<div class="mypage">
+    <div th:replace="fragments.html :: mypage-nav"></div>
+    <div class="mypage-contents">
+        <div class="paragraph-title">
+            <h2>마일리지 조회</h2>
+        </div>
+        <div class="mypage-content-wrapper">
+            <div class="mypage-content-title">현재 마일리지</div>
+            <small class="text-muted">
+                물건을 구매하면 일정 금액의 마일리지가 적립됩니다. 또한 해당 상품의 리뷰를 작성하시면 추가로 마일리지를 적립하실 수 있습니다. <br />
+                다만, 상품의 반품을 하시거나 리뷰를 삭제하실 경우에는 적립된 마일리지가 회수됩니다. <br />
+                마일리지 사용은 상품을 구매하실 때 사용하실 수 있으며 1원 단위로 사용하실 수 있습니다.
+            </small>
+            <div class="card mypage-card">
+                <div class="card-body">
+                    <span class="price-format" th:text="${account.mileage}"></span>원
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div th:replace="fragments.html :: main-footer"></div>
+<div th:include="fragments.html :: common-js-func" th:remove="tag"></div>
+<div th:replace="fragments.html :: price-with-comma"></div>
+
+</body>
+</html>

@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <div th:include="fragments.html :: head" th:remove="tag"></div>
+    <link rel="stylesheet" href="/css/mypage.css">
+</head>
+<body>
+
+<div th:replace="fragments.html :: main-nav"></div>
+<div class="mypage">
+    <div th:replace="fragments.html :: mypage-nav"></div>
+    <div class="mypage-contents">
+        <div class="paragraph-title">
+            <h2>주문 목록</h2>
+        </div>
+        <div class="mypage-content-wrapper">
+            <div class="mypage-content-title">주문 절차</div>
+            <small class="text-muted">
+                취소 신청: 결제완료 상태에서만 가능 <br />
+                반품 및 교환: 배송완료 상태에서만 가능
+            </small>
+            <div class="order-status-group">
+                <span class="order-status">결제완료</span><span class="right-arrow"></span>
+                <span class="order-status">상품준비</span><span class="right-arrow"></span>
+                <span class="order-status">배송중</span><span class="right-arrow"></span>
+                <span class="order-status">배송완료</span>
+            </div>
+        </div>
+        <div class="mypage-content-wrapper">
+            <div class="container-fluid order-details-list-container">
+                <div th:if="${orderDetailsList.isEmpty()}" class="none-item">주문한 상품이 없습니다.</div>
+                <th:block th:if="${!orderDetailsList.isEmpty()}">
+                    <div class="mypage-content-title">내 주문 목록(취소/교환/반품 제외)</div>
+                    <ul class="mypage-list">
+                        <li th:each="od : ${orderDetailsList}" class="mypage-item-container"
+                            th:with="o=${od.order},
+                                 pd=${od.productDetails},
+                                 p=${od.productDetails.product}" th:data-order-details-id="${od.id}">
+                            <div class="mypage-item">
+                                <div class="mypage-item-info">
+                                    <div th:replace="fragments.html :: thumbnail-container(thumbnail = ${p.thumbnail})"></div>
+                                    <div class="info-wrapper">
+                                        <div class="info-title">
+                                            <a th:href="@{'/mypage/order/' + ${o.orderNumber}}">
+                                                <span th:text="${p.name}"></span>
+                                                (<span th:text="${pd.color.name()}"></span> - <span th:text="${pd.size.getValue()}"></span>mm)
+                                                x <span th:text="${od.quantity}"></span>
+                                            </a>
+                                        </div>
+                                        <div class="info">
+                                            <div class="text-end"><span class="price-format" th:text="${od.unitPrice * od.quantity}"></span>원</div>
+                                            <div class="text-end"><small class="date" th:text="${o.createdDateTime}"></small></div>
+                                            <div th:if="${od.canReview()}" class="message">지금 리뷰를 작성하시면 추가로 마일리지를 적립하실 수 있습니다.</div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="mypage-item-extra-info">
+                                    <div class="order-status" th:text="${od.status.getName()}"></div>
+                                    <div class="option-btn-group">
+                                        <a th:href="@{'/product/' + ${p.id}}" class="mypage-btn">상품상세</a>
+                                        <button th:if="${od.status == T(com.nidas.modules.order.OrderStatus).PAID}" type="button"
+                                                class="mypage-btn order-cancel-btn" data-bs-toggle="modal" data-bs-target="#orderCancelModal">취소하기</button>
+                                        <th:block th:if="${od.canReturns()}">
+                                            <button type="button" class="mypage-btn order-exchange-btn">교환신청</button>
+                                            <button type="button" class="mypage-btn order-return-btn">반품신청</button>
+                                        </th:block>
+                                    </div>
+                                </div>
+                            </div>
+                            <form th:action="@{'/order/details/' + ${od.id} + '/exchange'}" method="post" class="order-exchange-form" novalidate>
+                                <div class="form-group">
+                                    <select class="form-select type">
+                                        <option value="" selected>사유를 선택해주세요.</option>
+                                        <option th:each="r : ${T(com.nidas.modules.returns.ReturnsType).getExchangeValues()}" th:value="${r}" th:text="${r.getName()}"></option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <textarea class="form-control content" placeholder="교환받으려는 물품명 및 사이즈에 대해 기재해주세요.(ex) 물품명/사이즈)" maxlength="255"></textarea>
+                                </div>
+                                <div class="form-group">
+                                    <input type="file" class="form-control image-file-input" />
+                                    <div class="image-view"></div>
+                                </div>
+                                <div class="form-group">
+                                    <small class="invalid-feedback"></small>
+                                </div>
+                                <div class="form-group">
+                                    <button class="btn btn-primary" type="submit">교환신청하기</button>
+                                </div>
+                            </form>
+                            <form th:action="@{'/order/details/' + ${od.id} + '/return'}" method="post" class="order-return-form" novalidate>
+                                <div class="form-group">
+                                    <select class="form-select type">
+                                        <option value="" selected>사유를 선택해주세요.</option>
+                                        <option th:each="r : ${T(com.nidas.modules.returns.ReturnsType).getReturnValues()}" th:value="${r}" th:text="${r.getName()}"></option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <textarea class="form-control content" placeholder="환불받으려는 물품명 및 환불이유에 대해 기재해주세요.(ex) 물품명/환불이유)" maxlength="255"></textarea>
+                                </div>
+                                <div class="form-group">
+                                    <input type="file" class="form-control image-file-input" />
+                                    <div class="image-view"></div>
+                                </div>
+                                <div class="form-group">
+                                    <small class="invalid-feedback"></small>
+                                </div>
+                                <div class="form-group">
+                                    <button class="btn btn-primary" type="submit">환불신청하기</button>
+                                </div>
+                            </form>
+                        </li>
+                    </ul>
+                    <div id="orderCancelModal" class="modal fade" tabindex="-1" aria-hidden="true">
+                        <div class="modal-dialog">
+                            <div class="modal-content text-start">
+                                <div class="modal-body">
+                                    정말로 주문을 취소하시겠습니까?<br />
+                                    취소 후 결제금액은 환불 처리됩니다.
+                                </div>
+                                <div class="modal-footer">
+                                    <button id="orderCancelModalNoBtn" type="button" class="btn btn-secondary" data-bs-dismiss="modal">아니오</button>
+                                    <form id="orderCancelModalForm" method="post" th:action="@{''}">
+                                        <button type="submit" class="btn btn-danger">네</button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </th:block>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div th:replace="fragments.html :: main-footer"></div>
+<div th:include="fragments.html :: common-js-func" th:remove="tag"></div>
+<div th:replace="fragments.html :: price-with-comma"></div>
+<div th:include="fragments.html :: date-format" th:remove="tag"></div>
+<div th:replace="fragments.html :: ajax-csrf-header"></div>
+<div th:replace="fragments.html :: ajax-feedback-message"></div>
+<script type="application/javascript" th:inline="javascript">
+    $(function () {
+        const $orderDetailsListContainer = $(".order-details-list-container");
+        const $orderCancelModal = $("#orderCancelModal");
+        const $orderCancelBtn = $("button.order-cancel-btn");
+        const $orderCancelModalForm = $("#orderCancelModalForm");
+        const $orderCancelNoBtn = $("#orderCancelModalNoBtn");
+
+        const $orderExchangeBtn = $("button.order-exchange-btn");
+        const $orderExchangeForm = $("form.order-exchange-form");
+        const $orderExchangeType = $orderExchangeForm.find(".form-group > select.type");
+        const $orderExchangeContent = $orderExchangeForm.find(".form-group > textarea.content");
+        const $orderExchangeImageFileInput = $orderExchangeForm.find(".form-group > input[type=file].image-file-input");
+        const $orderExchangeImageView = $orderExchangeImageFileInput.siblings(".image-view");
+        const $orderExchangeFeedback = $orderExchangeForm.find(".form-group > .invalid-feedback");
+
+        const $orderReturnBtn = $("button.order-return-btn");
+        const $orderReturnForm = $("form.order-return-form");
+        const $orderReturnType = $orderReturnForm.find(".form-group > select.type");
+        const $orderReturnContent = $orderReturnForm.find(".form-group > textarea.content");
+        const $orderReturnImageFileInput = $orderReturnForm.find(".form-group > input[type=file].image-file-input");
+        const $orderReturnImageView = $orderReturnImageFileInput.siblings(".image-view");
+        const $orderReturnFeedback = $orderReturnForm.find(".form-group > .invalid-feedback");
+
+        let orderDetailsId = null;
+        let orderDetailsToCancel = null;
+
+        /*<![CDATA[*/
+
+        let orderDetailsCount = /*[[${orderDetailsList.size()}]]*/;
+
+        /*]]>*/
+
+        // 주문 취소
+        $orderCancelBtn.click(function (e) {
+            orderDetailsToCancel = e.currentTarget.closest("li.mypage-item-container");
+            orderDetailsId = orderDetailsToCancel.dataset.orderDetailsId;
+        });
+
+        $orderCancelNoBtn.click(function (e) {
+            orderDetailsId = orderDetailsToCancel = null;
+        });
+
+        $orderCancelModal.on('hide.bs.modal', function () {
+            orderDetailsId = orderDetailsToCancel = null;
+        });
+
+        $orderCancelModalForm.submit(function (e) {
+            e.preventDefault();
+            e.stopPropagation();
+
+            $.ajax({
+                method: "POST",
+                url: "/order/details/" + orderDetailsId + "/cancel"
+            }).done(function (data, status) {
+                orderDetailsCount--;
+                if (orderDetailsCount > 0) {
+                    orderDetailsToCancel.remove();
+                } else {
+                    const $noneItem = $(`<div class="none-item">주문한 상품이 없습니다.</div>`);
+                    $orderDetailsListContainer.html($noneItem);
+                }
+                $orderCancelModal.modal('hide');
+                alert("주문을 취소했습니다.");
+            }).fail(function (jqXHR, textStatus, errorThrown) {
+                setFeedback(jqXHR);
+            });
+        });
+
+        // exchange form 열기
+        $orderExchangeBtn.click(function (e) {
+            clearForm();
+            $orderReturnForm.hide();
+
+            const $currentExchangeForm = $(e.currentTarget).closest("li.mypage-item-container").find("form.order-exchange-form");
+            $orderExchangeForm.each(function (idx, el) {
+                if ($currentExchangeForm.is(el)) {
+                    $currentExchangeForm.slideToggle();
+                } else {
+                    el.style.display = 'none';
+                }
+            });
+        });
+
+        // return form 열기
+        $orderReturnBtn.click(function (e) {
+            clearForm();
+            $orderExchangeForm.hide();
+
+            const $currentReturnForm = $(e.currentTarget).closest("li.mypage-item-container").find("form.order-return-form");
+            $orderReturnForm.each(function (idx, el) {
+                if ($currentReturnForm.is(el)) {
+                    $currentReturnForm.slideToggle();
+                } else {
+                    el.style.display = 'none';
+                }
+            });
+        });
+
+        function clearForm() {
+            $orderExchangeType.val('');
+            $orderExchangeContent.val('');
+            $orderExchangeImageFileInput.val('');
+            $orderExchangeImageView.html('');
+            $orderExchangeFeedback.text('').css('display', 'none');
+
+            $orderReturnType.val('');
+            $orderReturnContent.val('');
+            $orderReturnImageFileInput.val('');
+            $orderReturnImageView.html('');
+            $orderReturnFeedback.text('').css('display', 'none');
+        }
+
+        // 이미지 처리
+        [$orderExchangeImageFileInput, $orderReturnImageFileInput].forEach(el => {
+            $(el).change(function (e) {
+                const files = $(this)[0].files;
+                const $imageView = $(this).siblings(".image-view");
+                $imageView.html('');
+
+                if (files.length > 1) {
+                    $(this).val('');
+                    alert('하나의 이미지 파일만 업로드할 수 있습니다.');
+                } else {
+                    const file = files[0];
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        if (e.target.result && e.target.result.startsWith("data:image")) {
+                            const div = document.createElement("div");
+                            const img = document.createElement("img");
+
+                            div.className = 'image-container';
+                            div.style.width = '300px';
+                            div.style.height = '300px';
+                            div.style.overflow = 'hidden';
+                            img.className = 'image';
+                            img.src = e.target.result;
+                            img.style.width = '100%';
+
+                            div.appendChild(img);
+                            $imageView.append(div);
+                        }
+                    }
+                    reader.filename = file.name;
+                    reader.readAsDataURL(file);
+                }
+            });
+        });
+
+        // exchange form, return form 처리
+        [$orderExchangeForm, $orderReturnForm].forEach(el => {
+            $(el).submit(function (e) {
+                e.preventDefault();
+                e.stopPropagation();
+
+                const $currentForm = $(e.currentTarget);
+                const $currentType = $currentForm.find(".form-group > select.type");
+                const $currentContent = $currentForm.find(".form-group > textarea.content");
+                const currentImage = $currentForm.find(".form-group > .image-view > .image-container > img.image").prop('src');
+                const $currentFeedback = $currentForm.find(".form-group > .invalid-feedback");
+
+                $currentFeedback.text('').css('display', 'none');
+
+                if ($currentType.val() === "") {
+                    $currentFeedback.text("반품사유를 선택해주세요.").css('display', 'block');
+                    return;
+                }
+
+                if ($currentContent.val() === "") {
+                    $currentFeedback.text("반품내용을 입력해주세요.").css('display', 'block');
+                    return;
+                }
+
+                $.ajax({
+                    contentType: "application/json; charset=utf-8",
+                    method: "POST",
+                    url: e.currentTarget.action,
+                    data: JSON.stringify({
+                        "type": $currentType.val(),
+                        "content": $currentContent.val(),
+                        "image": currentImage
+                    })
+                }).done(function (data, status) {
+                    orderDetailsCount--;
+                    if (orderDetailsCount > 0) {
+                        $(e.currentTarget).closest("li.mypage-item-container").remove();
+                    } else {
+                        const $noneItem = $(`<div class="none-item">주문한 상품이 없습니다.</div>`);
+                        $orderDetailsListContainer.html($noneItem);
+                    }
+                    alert("반품신청이 접수되었습니다.");
+                }).fail(function (jqXHR, textStatus, errorThrown) {
+                    $currentFeedback.text(jqXHR.responseJSON.message).css('display', 'block');
+                });
+            });
+        });
+    });
+</script>
+
+</body>
+</html>

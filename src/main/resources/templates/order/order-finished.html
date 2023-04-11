@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <div th:include="fragments.html :: head" th:remove="tag"></div>
+    <link rel="stylesheet" href="/css/order.css">
+</head>
+<body>
+
+<div th:replace="fragments.html :: main-nav"></div>
+<div class="order-finished">
+    <div class="message">주문이 완료되었습니다.</div>
+    <div class="shopping-link-group">
+        <a th:href="@{'/products'}" class="shopping-link">쇼핑 계속하기</a>
+        <a th:href="@{'/mypage/order-list'}" class="shopping-link">주문 목록 확인</a>
+    </div>
+</div>
+
+<div th:replace="fragments.html :: main-footer"></div>
+<div th:include="fragments.html :: common-js-func" th:remove="tag"></div>
+
+</body>
+</html>

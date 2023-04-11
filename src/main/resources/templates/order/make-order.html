@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <div th:include="fragments.html :: head" th:remove="tag"></div>
+    <link rel="stylesheet" href="/css/order.css">
+</head>
+<body>
+
+<div th:replace="fragments.html :: main-nav"></div>
+<div class="order-container">
+    <div class="rest-info-container">
+        <div class="rest-info-wrapper">
+            <div class="rest-info-title">주문자 정보</div>
+            <div class="rest-info">
+                <div class="info-wrapper">
+                    <span class="info-title">이메일</span>
+                    <span class="info" th:text="${account.email}"></span>
+                </div>
+                <div class="info-wrapper">
+                    <span class="info-title">이름</span>
+                    <span class="info" th:text="${account.name}"></span>
+                </div>
+                <div class="info-wrapper">
+                    <span class="info-title">성별 / 나이</span>
+                    <span class="info">
+                        <span th:text="${account.gender.getName()}"></span>
+                        / <span th:text="${T(java.time.Period).between(account.birthday, T(java.time.LocalDate).now()).getYears() + '세'}"></span>
+                    </span>
+                </div>
+                <div class="verification">
+                    <div th:if="${account.isEmailVerified()}" class="after-verification">
+                        <div class="message">본인인증을 완료한 상태입니다.</div>
+                    </div>
+                    <div th:if="${!account.isEmailVerified()}" class="before-verification">
+                        <div class="message">정보 확인을 위해 주문 전 최초 1회의 본인 인증을 하셔야 합니다.</div>
+                        <a role="button" th:href="@{'/mypage/edit/info'}" class="verification-link">본인인증하기</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="rest-info-wrapper">
+            <div class="rest-info-title">배송 정보</div>
+            <div class="rest-info">
+                <div class="info-wrapper">
+                    <label for="receiver" class="info-title">수령인</label>
+                    <input type="text" id="receiver" class="info order-input" maxlength="50" />
+                </div>
+                <div class="info-wrapper">
+                    <label for="address1" class="info-title">배송지</label>
+                    <div class="info delivery-address-wrapper">
+                        <div>
+                            <input th:value="${account.address1}" type="text" id="address1" class="order-input" disabled />
+                            <button id="addressBtn" type="button" class="btn zip-code-btn">우편번호찾기</button>
+                        </div>
+                        <input th:value="${account.address2}" type="text" id="address2" class="order-input" disabled />
+                        <input th:value="${account.address3}" type="text" id="address3" class="order-input" placeholder="상세주소를 입력해주세요." />
+                    </div>
+                </div>
+                <div class="info-wrapper">
+                    <label for="phoneNumber" class="info-title">연락처</label>
+                    <input th:value="${account.phoneNumber}" type="text" id="phoneNumber" class="info order-input" pattern="\d*" maxlength="11" placeholder="전화번호를 (-)없이 입력해주세요." />
+                </div>
+                <div class="info-wrapper">
+                    <label for="deliveryRequest" class="info-title">배송시 요구사항</label>
+                    <input type="text" id="deliveryRequest" class="info order-input" placeholder="ex) 집 앞에 두고 문자해주세요." />
+                </div>
+            </div>
+        </div>
+        <div class="rest-info-wrapper">
+            <div class="rest-info-title">마일리지 정보</div>
+            <div class="rest-info mileage-info-wrapper">
+                <small class="possession-mileage">보유 마일리지 <span class="price-format" th:text="${account.mileage}"></span>P</small>
+                <input id="mileage" type="number" class="order-input" value="0" />
+                <button type="button" id="mileageUseAllBtn" class="btn">모두 사용</button>
+            </div>
+        </div>
+    </div>
+    <div class="order-info-container">
+        <div class="order-info-wrapper">
+            <div class="order-info-title">
+                주문상품 정보 / 총 <span th:text="${cartList.size()}"></span>개
+            </div>
+            <div class="order-info order-product-details-wrapper">
+                <div th:each="c: ${cartList}" class="order-product-details"
+                     th:with="pd=${c.productDetails},
+                              p=${c.productDetails.product}">
+                    <div th:replace="fragments.html :: thumbnail-container(thumbnail = ${p.thumbnail})"></div>
+                    <div class="product-info">
+                        <div class="info-title"><span th:text="${p.name}"></span></div>
+                        <div class="info">
+                            <span th:text="${pd.color.name()}"></span> - <span th:text="${pd.size.getValue()}"></span>
+                            / <span th:text="${c.quantity}"></span>개</div>
+                        <div th:replace="fragments.html :: price-container(product = ${p})"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="order-info-wrapper">
+            <div class="order-info">
+                <table class="table price-info">
+                    <tbody>
+                        <tr>
+                            <th scope="row"><div>총 상품금액</div></th>
+                            <td><div><span id="totalOrderPrice" class="price-format"></span> 원</div></td>
+                        </tr>
+                        <tr>
+                            <th scope="row"><div>배송비</div></th>
+                            <td><div><span class="font-monospace">(+) </span> <span id="deliveryPrice" class="price-format"></span> 원</div></td>
+                        </tr>
+                        <tr>
+                            <th scope="row"><div>마일리지 사용</div></th>
+                            <td><div><span class="font-monospace">(-) </span> <span id="mileageUsage" class="price-format">0</span> point</div></td>
+                        </tr>
+                        <tr>
+                            <th scope="row"><div>총 결제금액</div></th>
+                            <td>
+                                <div style="color: orangered;">
+                                    <span id="totalPaymentPrice" class="price-format"></span>원
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <div class="order-info-wrapper">
+            <div class="invalid-feedback-wrapper">
+                <small id="orderFeedback" class="invalid-feedback"></small>
+            </div>
+            <div class="order-info">
+                <input type="checkbox" id="termsOfService" class="option-checkbox" /> 상품 이용 약관에 동의합니다.(필수)
+                <button type="button" id="checkoutBtn" class="btn">결제하기</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div th:replace="fragments.html :: main-footer"></div>
+<div th:include="fragments.html :: common-js-func" th:remove="tag"></div>
+<div th:replace="fragments.html :: price-with-comma"></div>
+<div th:replace="fragments.html :: ajax-csrf-header"></div>
+<div th:include="fragments.html :: daum-address-api" th:remove="tag"></div>
+<script type="application/javascript" th:inline="javascript">
+    $(function () {
+        const $receiver = $("#receiver");
+        const $address1 = $("#address1");
+        const $address2 = $("#address2");
+        const $address3 = $("#address3");
+        const $phoneNumber = $("#phoneNumber");
+        const $deliveryRequest = $("#deliveryRequest");
+        const $mileage = $("#mileage");
+        const $addressBtn = $("#addressBtn");
+        const $mileageUseAllBtn = $("#mileageUseAllBtn");
+
+        const $totalOrderPrice = $("#totalOrderPrice");
+        const $deliveryPrice = $("#deliveryPrice");
+        const $mileageUsage = $("#mileageUsage");
+        const $totalPaymentPrice = $("#totalPaymentPrice");
+
+        const $orderFeedback = $("#orderFeedback");
+        const $termsOfService = $("input[type=checkbox]#termsOfService");
+        const $checkoutBtn = $("button#checkoutBtn");
+
+        let totalOrderPrice = 0;
+        let deliveryPrice = 0;
+        let mileage = 0;
+
+        /*<![CDATA[*/
+
+        const accountMileage = /*[[${account.mileage}]]*/;
+        const cartIdList = [];
+        const DELIVERY_FREE_BASIS = /*[[${deliveryFreeBasis}]]*/;
+        const DELIVERY_PRICE = /*[[${deliveryPrice}]]*/;
+
+        /*[# th:each="c : ${cartList}"]*/
+        totalOrderPrice += /*[[${c.productDetails.product.getDiscountedPrice() * c.quantity}]]*/
+        cartIdList.push(/*[[${c.id}]]*/);
+        /*[/]*/
+
+        if (cartIdList.length > 0 && totalOrderPrice < DELIVERY_FREE_BASIS) deliveryPrice = DELIVERY_PRICE;
+
+        $totalOrderPrice.text(totalOrderPrice);
+        $deliveryPrice.text(deliveryPrice);
+        $totalPaymentPrice.text(totalOrderPrice + deliveryPrice);
+        formatPrice();
+
+        /*]]>*/
+
+        // 주소 찾기 버튼 클릭시 주소 입력창 열기
+        $addressBtn.click(execDaumPostcode);
+
+        // 마일리지 사용
+        $mileage.change(function (e) {
+            const value = e.currentTarget.value;
+
+            if (accountMileage >= 0) {
+                if (value <= 0) mileage = 0;
+                else if (value > accountMileage) mileage = accountMileage;
+                else mileage = value;
+            } else {
+                mileage = accountMileage;
+            }
+            useMileage();
+        });
+
+        // 마일리지 전체 사용
+        $mileageUseAllBtn.click(function (e) {
+            mileage = accountMileage;
+            useMileage();
+        });
+
+        function useMileage() {
+            $mileage.val(mileage);
+            $mileageUsage.text(mileage);
+            $totalPaymentPrice.text(totalOrderPrice + deliveryPrice - mileage);
+            formatPrice();
+        }
+
+        // 결제하기
+        $checkoutBtn.click(function (e) {
+            $orderFeedback.text("").css('display', 'none');
+
+            if ($receiver.val() === "") {
+                $orderFeedback.text("수령인을 입력해주세요.").css('display', 'block');
+                return;
+            } else if (!validateReceiver($receiver.val())) {
+                $orderFeedback.text("수령인을 영문자, 한글로 입력해주세요.").css('display', 'block');
+                return;
+            }
+            if ($address1.val() === "" || $address2.val() === "") {
+                $orderFeedback.text("주소를 입력해주세요.").css('display', 'block');
+                return;
+            }
+            if ($phoneNumber.val() === "") {
+                $orderFeedback.text("전화번호를 입력해주세요.").css('display', 'block');
+                return;
+            } else if (!validatePhoneNumber($phoneNumber.val())) {
+                $orderFeedback.text("(-) 없이 휴대폰번호 10자리 또는 11자리를 입력해주세요.").css('display', 'block');
+                return;
+            }
+
+            if (accountMileage >= 0) {
+                if (mileage > accountMileage || mileage < 0) {
+                    $orderFeedback.text("잘못된 마일리지 값입니다.").css('display', 'block');
+                    return;
+                } else if (mileage > totalOrderPrice + deliveryPrice) {
+                    $orderFeedback.text("마일리지 금액이 주문 금액을 초과합니다.").css('display', 'block');
+                    return;
+                }
+            } else if (mileage !== accountMileage) {
+                $orderFeedback.text("마일리지를 모두 사용해주세요.").css('display', 'block');
+                return;
+            }
+
+            if (!$termsOfService.is(":checked")) {
+                $orderFeedback.text("약관에 동의해주세요.").css('display', 'block');
+                return;
+            }
+
+            $.ajax({
+                contentType: "application/json; charset=utf-8",
+                method: "POST",
+                url: "/order",
+                data: JSON.stringify({
+                    "receiver": $receiver.val(),
+                    "address1": $address1.val(),
+                    "address2": $address2.val(),
+                    "address3": $address3.val(),
+                    "phoneNumber": $phoneNumber.val(),
+                    "deliveryRequest": $deliveryRequest.val(),
+                    "mileageUsage": mileage,
+                    "cartIdList": cartIdList
+                })
+            }).done(function (data, status) {
+                window.location.href = '/order/finished';
+            }).fail(function (jqXHR, textStatus, errorThrown) {
+                $orderFeedback.text(jqXHR.responseJSON.message).css('display', 'block');
+            });
+        });
+
+        function validateReceiver(receiver) {
+            const regex = /^[a-zA-Z가-힣]{1,50}$/;
+            return regex.test(receiver);
+        }
+
+        function validatePhoneNumber(phoneNumber) {
+            const regex = /^(01[016789])([0-9]{3,4})([0-9]{4})$/;
+            return regex.test(phoneNumber);
+        }
+    });
+</script>
+
+</body>
+</html>

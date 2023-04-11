@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+
+<div th:replace="fragments.html :: head"></div>
+<body>
+
+<div th:replace="fragments.html :: main-nav"></div>
+<div class="container">
+    <div class="form-content">
+        <div class="paragraph-title">
+            <h2>로그인</h2>
+        </div>
+        <form th:action="@{/login}" method="post" id="loginForm" novalidate>
+            <div class="form-group">
+                <label for="email">이메일</label>
+                <input name="username" id="email" type="email" class="form-control" maxlength="100" placeholder="이메일을 입력해 주세요." />
+            </div>
+            <div class="form-group">
+                <label for="password">비밀번호</label>
+                <input name="password" id="password" type="password" class="form-control" maxlength="20" placeholder="비밀번호를 입력해 주세요." />
+            </div>
+            <div class="text-center mt-5">
+                <small id="loginFeedback" class="invalid-feedback" th:text="${param.error} ? '이메일 또는 비밀번호가 정확하지 않습니다.'"></small>
+            </div>
+            <div class="form-group form-check mt-0">
+                <input type="checkbox" class="form-check-input" id="rememberMe" name="remember-me" checked />
+                <label class="form-check-label" for="rememberMe">로그인 유지</label>
+            </div>
+            <div class="form-group mt-0">
+                <button type="submit" class="btn btn-success d-block w-100">로그인</button>
+                <small class="text-muted">비밀 번호가 생각나지 않으시면 <a class="text-decoration-underline" th:href="@{'/find-password'}">비밀번호 찾기</a>를 이용해 주세요.</small>
+            </div>
+            <div class="mt-5">
+                <a th:href="@{'/sign-up'}" role="button" class="btn btn-outline-secondary d-block w-100 rounded-pill">
+                    계정이 없으신가요? 회원 가입하기
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+<div th:replace="fragments.html :: main-footer"></div>
+<div th:include="fragments.html :: common-js-func" th:remove="tag"></div>
+<script type="application/javascript">
+    $(function () {
+        const $email = $("#email");
+        const $password = $("#password");
+        const $loginFeedback = $("#loginFeedback");
+        const $loginForm = $("#loginForm");
+
+        $loginFeedback.css('display', 'block');
+        $loginForm.submit(function (e) {
+            $loginFeedback.css('display', 'none');
+
+            if ($email.val() === "") {
+                processInvalidStatus("이메일을 입력해주세요.", e);
+            } else if (!validateEmail($email.val())) {
+                processInvalidStatus("이메일 형식이어야 합니다.", e);
+            } else if ($password.val() === "") {
+                processInvalidStatus("비밀번호를 입력해주세요.", e);
+            }
+        });
+
+        function validateEmail(email) {
+            const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            return regex.test(email);
+        }
+
+        function processInvalidStatus(message, event) {
+            $loginFeedback.text(message).css('display', 'block');
+            event.preventDefault();
+            event.stopPropagation();
+        }
+    });
+</script>
+
+</body>
+</html>

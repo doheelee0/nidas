@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+
+<div th:replace="fragments.html :: head"></div>
+<body>
+
+<div th:replace="fragments.html :: main-nav"></div>
+<div class="container">
+    <div th:replace="fragments.html :: error-message"></div>
+    <div th:replace="fragments.html :: success-message"></div>
+</div>
+<div th:replace="fragments.html :: main-footer"></div>
+<div th:include="fragments.html :: common-js-func" th:remove="tag"></div>
+
+</body>
+</html>

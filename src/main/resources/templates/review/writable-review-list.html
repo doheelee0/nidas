@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <div th:include="fragments.html :: head" th:remove="tag"></div>
+    <link rel="stylesheet" href="/css/mypage.css">
+</head>
+<body>
+
+<div th:replace="fragments.html :: main-nav"></div>
+<div class="mypage">
+    <div th:replace="fragments.html :: mypage-nav"></div>
+    <div class="mypage-contents">
+        <div class="paragraph-title">
+            <h2>리뷰 작성 가능한 주문 목록</h2>
+        </div>
+        <div class="mypage-content-wrapper">
+            <div class="mypage-content-title">리뷰 작성 정책</div>
+            <small class="text-muted">
+                주문일로부터 3개월 이내에 리뷰를 작성할 수 있으며 주문 목록마다 하나의 리뷰만 작성할 수 있습니다.<br />
+                리뷰를 작성하시면 결제금의 0.5% 만큼의 마일리지를 적립하실수 있습니다. <br />
+                사진을 첨부하셔서 포토리뷰를 작성하시면 결제금의 1% 만큼의 마일리지를 적립하실수 있습니다.
+            </small>
+        </div>
+        <div class="mypage-content-wrapper">
+            <div class="container-fluid order-details-list-container">
+                <div th:if="${orderDetailsList.isEmpty()}" class="none-item">리뷰를 작성할 수 있는 주문이 없습니다.</div>
+                <th:block th:if="${!orderDetailsList.isEmpty()}">
+                    <div class="mypage-content-title">주문 목록</div>
+                    <ul class="mypage-list">
+                        <li th:each="od : ${orderDetailsList}" class="mypage-item-container"
+                            th:with="o=${od.order},
+                             pd=${od.productDetails},
+                             p=${od.productDetails.product}">
+                            <div class="mypage-item">
+                                <div class="mypage-item-info">
+                                    <div th:replace="fragments.html :: thumbnail-container(thumbnail = ${p.thumbnail})"></div>
+                                    <div class="info-wrapper">
+                                        <div class="info-title">
+                                            <a th:href="@{'/mypage/order/' + ${o.orderNumber}}">
+                                                <span th:text="${p.name}"></span>
+                                                (<span th:text="${pd.color.name()}"></span> - <span th:text="${pd.size.getValue()}"></span>mm)
+                                                x <span th:text="${od.quantity}"></span>
+                                            </a>
+                                        </div>
+                                        <div class="info">
+                                            <div class="text-end"><span class="price-format" th:text="${od.unitPrice * od.quantity}"></span>원</div>
+                                            <div class="text-end"><small class="date" th:text="${o.createdDateTime}"></small></div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="mypage-item-extra-info">
+                                    <div class="order-status" th:text="${od.status.getName()}"></div>
+                                    <button type="button" class="mypage-btn review-btn">리뷰쓰기</button>
+                                </div>
+                            </div>
+                            <div th:replace="fragments.html :: review-form(mode='new', action='/order/details/' + ${od.id} + '/review/write')"></div>
+                        </li>
+                    </ul>
+                </th:block>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div th:replace="fragments.html :: main-footer"></div>
+<div th:include="fragments.html :: common-js-func" th:remove="tag"></div>
+<div th:replace="fragments.html :: price-with-comma"></div>
+<div th:include="fragments.html :: date-format" th:remove="tag"></div>
+<div th:replace="fragments.html :: review-rank"></div>
+<div th:replace="fragments.html :: review-image"></div>
+<div th:replace="fragments.html :: ajax-csrf-header"></div>
+<script type="application/javascript" th:inline="javascript">
+    $(function () {
+        const $orderDetailsListContainer = $(".order-details-list-container");
+        const $reviewBtn = $("button.review-btn");
+        const $reviewForm = $("form.review-form");
+        const $reviewRank = $reviewForm.find(".form-group > input.rank");
+        const $reviewContent = $reviewForm.find(".form-group > textarea.content");
+        const $reviewImageFileInput = $reviewForm.find(".form-group > input[type=file].image-file-input");
+        const $reviewImageView = $reviewImageFileInput.siblings(".image-view");
+        const $reviewFeedback = $reviewForm.find(".form-group > .invalid-feedback");
+
+        /*<![CDATA[*/
+
+        let orderDetailsCount = /*[[${orderDetailsList.size()}]]*/;
+
+        /*]]>*/
+
+        // review form 열기
+        $reviewBtn.click(function (e) {
+            clearForm();
+            const $currentReviewForm = $(e.currentTarget).closest("li.mypage-item-container").find("form.review-form");
+            $reviewForm.each(function (idx, el) {
+                if ($currentReviewForm.is(el)) {
+                    $currentReviewForm.slideToggle();
+                } else {
+                    el.style.display = 'none';
+                }
+            });
+        });
+
+        function clearForm() {
+            $reviewRank.val('');
+            $reviewRank.siblings(".star-wrapper").find("i.fa").removeClass("fa-star").addClass("fa-star-o");
+            $reviewContent.val('');
+            $reviewImageFileInput.val('');
+            $reviewImageView.html('');
+            $reviewFeedback.text('').css('display', 'none');
+        }
+
+        // 리뷰 폼 처리
+        $reviewForm.submit(function (e) {
+            e.preventDefault();
+            e.stopPropagation();
+
+            const $currentRank = $(e.currentTarget).find(".form-group > input.rank");
+            const $currentContent = $(e.currentTarget).find(".form-group > textarea.content");
+            const $currentFeedback = $(e.currentTarget).find(".form-group > .invalid-feedback");
+            const currentImage = $(e.currentTarget).find(".form-group > .image-view > .image-container > img.image").prop('src');
+            const currentRank = parseInt($currentRank.val());
+
+            $currentFeedback.css('display', 'none');
+
+            if (![1, 2, 3, 4, 5].includes(currentRank)) {
+                $currentFeedback.text("평점을 선택해주세요.").css('display', 'block');
+                return;
+            }
+
+            if ($currentContent.val() === "") {
+                $currentFeedback.text("리뷰 내용을 입력해주세요.").css('display', 'block');
+                return;
+            } else if ($currentContent.val().length < 10) {
+                $currentFeedback.text("리뷰 내용을 최소 10자 이상 작성해주세요.").css('display', 'block');
+                return;
+            }
+
+            $.ajax({
+                contentType: "application/json; charset=utf-8",
+                method: "POST",
+                url: e.currentTarget.action,
+                data: JSON.stringify({
+                    "rank": currentRank,
+                    "content": $currentContent.val(),
+                    "image": currentImage
+                })
+            }).done(function (data, status) {
+                orderDetailsCount--;
+                if (orderDetailsCount > 0) {
+                    $(e.currentTarget).closest("li.mypage-item-container").remove();
+                } else {
+                    const $noneItem = $(`<div class="none-item">리뷰를 작성할 수 있는 주문이 없습니다.</div>`);
+                    $orderDetailsListContainer.html($noneItem);
+                }
+                alert("리뷰를 작성했습니다.");
+            }).fail(function (jqXHR, textStatus, errorThrown) {
+                $currentFeedback.text(jqXHR.responseJSON.message).css('display', 'block');
+            });
+        });
+    });
+</script>
+
+</body>
+</html>

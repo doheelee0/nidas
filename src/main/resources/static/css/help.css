@@ -1,0 +1,134 @@
+.help-page {
+    display: flex;
+    padding: 0 1.5rem;
+}
+
+.help-page-nav {
+    width: 200px;
+    display: flex;
+    align-items: start;
+    justify-content: start;
+    margin-top: 5rem;
+    flex-direction: column;
+}
+
+.help-page-nav-title {
+    font-size: 1.3rem;
+    margin: 2rem 0 1rem;
+}
+
+.help-page-content-wrapper {
+    margin-top: 4rem;
+}
+
+nav.faq-tab > ul.navbar-nav {
+    white-space: nowrap;
+    overflow-x: auto;
+}
+
+nav.faq-tab > ul.navbar-nav > li.nav-item {
+    float: left;
+}
+
+nav.faq-tab > ul.navbar-nav > li.nav-item > a.nav-link {
+    display: inline-block;
+    padding: 2px 20px 0;
+    line-height: 42px;
+}
+
+nav.faq-tab > ul.navbar-nav > li.nav-item:first-child > a.nav-link {
+    padding: 2px 20px 0 0;
+}
+
+nav.faq-tab > ul.navbar-nav > li.nav-item:not(:first-child):before {
+    display: inline-block;
+    width: 1px;
+    height: 14px;
+    margin: 15px 0 0;
+    background: #d4d4d4;
+    vertical-align: top;
+    content: "";
+}
+
+form.help-search-form {
+    display: flex;
+    width: 300px;
+    margin-bottom: 30px;
+}
+
+form.help-search-form > input,
+form.help-search-form > input:focus {
+    border-color: #ced4da;
+    outline: none;
+    box-shadow: none;
+}
+
+table.help-page-table {
+    border-top: 3px solid black;
+    table-layout: fixed;
+}
+
+table.help-page-table th,
+table.help-page-table td {
+    padding: 1rem 0.5rem;
+    overflow: hidden;
+    word-wrap: break-word;
+}
+
+table.help-page-table th.th-left,
+table.help-page-table td.td-left {
+    width: 50px;
+}
+
+table.help-page-table td.td-middle > .content {
+    display: none;
+    margin-top: 30px;
+    font-size: 14px;
+}
+
+table.help-page-table th.th-right,
+table.help-page-table td.td-right {
+    width: 150px;
+}
+
+table.help-page-table > tbody > tr.opened {
+    background-color: #F5F5F5;
+}
+
+table.help-page-table > tbody > td {
+    border-left: 1px solid #dee2e6;
+    color: #2C353D;
+}
+
+@media (min-width: 768px) {
+    .help-page-contents {
+        width: calc(100% - 200px);
+        padding-left: 2rem;
+    }
+}
+
+@media (max-width: 767px) {
+    .help-page {
+        flex-direction: column;
+    }
+
+    .help-page-nav,
+    .help-page-nav > .navbar-nav {
+        width: 100%;
+        margin-top: 0;
+    }
+
+    .help-page-nav > .navbar-nav > .help-page-nav-title {
+        width: 100%;
+        margin: 0.5rem 0;
+        border-bottom: 3px solid rgba(0, 0, 0, 0.5);
+    }
+
+    .help-page-nav .nav-link {
+        padding-top: 0;
+    }
+
+    .help-page-contents {
+        padding-left: 0;
+    }
+}

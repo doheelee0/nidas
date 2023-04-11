@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <div th:include="fragments.html :: head" th:remove="tag"></div>
+    <link rel="stylesheet" href="/css/mypage.css">
+</head>
+<body>
+
+<div th:replace="fragments.html :: main-nav"></div>
+<div class="mypage">
+    <div th:replace="fragments.html :: mypage-nav"></div>
+    <div class="mypage-contents">
+        <div class="paragraph-title">
+            <h2>작성한 리뷰 목록</h2>
+        </div>
+        <div class="mypage-content-wrapper">
+            <div class="mypage-content-title">리뷰 삭제 정책</div>
+            <small class="text-muted">
+                리뷰를 삭제하면 받은 마일리지가 회수되며 다시 작성하실 수 없습니다.
+            </small>
+        </div>
+        <div class="mypage-content-wrapper">
+            <div class="container-fluid review-list-container">
+                <div th:if="${reviewList.isEmpty()}" class="none-item">작성한 리뷰가 없습니다.</div>
+                <th:block th:if="${!reviewList.isEmpty()}">
+                    <div class="mypage-content-title">리뷰 목록</div>
+                    <ul class="mypage-list">
+                        <li th:each="r : ${reviewList}" class="mypage-item-container"
+                            th:with="o=${r.orderDetails.order},
+                             od=${r.orderDetails},
+                             pd=${r.orderDetails.productDetails},
+                             p=${r.product}" th:data-review-id="${r.id}">
+                            <div class="mypage-item">
+                                <div class="mypage-item-info">
+                                    <div th:replace="fragments.html :: thumbnail-container(thumbnail = ${r.image})"></div>
+                                    <div class="info-wrapper">
+                                        <div class="info-title">
+                                            <div>
+                                                <span th:text="${p.name}"></span> -
+                                                [<span th:text="${pd.color.name()}"></span>][<span th:text="${pd.size.getValue()}"></span>mm]
+                                                x <span th:text="${od.quantity}"></span>개 구매
+                                            </div>
+                                        </div>
+                                        <div class="info">
+                                            <div class="star-wrapper text-end">
+                                                <i class="fa" th:classappend="${r.rank >= 1} ? 'fa-star' : 'fa-star-o'"></i>
+                                                <i class="fa" th:classappend="${r.rank >= 2} ? 'fa-star' : 'fa-star-o'"></i>
+                                                <i class="fa" th:classappend="${r.rank >= 3} ? 'fa-star' : 'fa-star-o'"></i>
+                                                <i class="fa" th:classappend="${r.rank >= 4} ? 'fa-star' : 'fa-star-o'"></i>
+                                                <i class="fa" th:classappend="${r.rank >= 5} ? 'fa-star' : 'fa-star-o'"></i>
+                                            </div>
+                                            <div class="text-end"><small class="date" th:text="${r.createdDateTime}"></small></div>
+                                            <div class="message"><span th:utext="${r.content}" style="white-space: pre;"></span></div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="mypage-item-extra-info">
+                                    <a th:href="@{'/mypage/order/' + ${o.orderNumber}}" class="mypage-btn">주문정보조회</a>
+                                    <button th:if="${r.isEditable()}" type="button" class="mypage-btn review-update-btn">수정하기</button>
+                                    <button type="button" class="mypage-btn review-delete-btn" data-bs-toggle="modal" data-bs-target="#reviewDeleteModal">삭제하기</button>
+                                </div>
+                            </div>
+                            <div th:replace="fragments.html :: mypage-zoom-image(image=${r.image})"></div>
+                            <div th:replace="fragments.html :: review-form(mode='edit', action='/review/' + ${r.id} + '/update')"></div>
+                        </li>
+                    </ul>
+                    <div id="reviewDeleteModal" class="modal fade" tabindex="-1" aria-hidden="true">
+                        <div class="modal-dialog">
+                            <div class="modal-content">
+                                <div class="modal-body">
+                                    정말로 해당 리뷰를 삭제하시겠습니까?<br />
+                                    삭제하면 적립된 마일리지는 회수되며 리뷰를 다시 작성하실 수 없습니다.
+                                </div>
+                                <div class="modal-footer">
+                                    <button id="reviewDeleteModalNoBtn" type="button" class="btn btn-secondary" data-bs-dismiss="modal">아니오</button>
+                                    <form id="reviewDeleteModalForm" method="post" th:action="@{''}">
+                                        <button type="submit" class="btn btn-danger">네</button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </th:block>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div th:replace="fragments.html :: main-footer"></div>
+<div th:include="fragments.html :: common-js-func" th:remove="tag"></div>
+<div th:include="fragments.html :: date-format" th:remove="tag"></div>
+<div th:replace="fragments.html :: review-rank"></div>
+<div th:replace="fragments.html :: review-image"></div>
+<div th:replace="fragments.html :: ajax-csrf-header"></div>
+<div th:replace="fragments.html :: ajax-feedback-message"></div>
+<script type="application/javascript" th:inline="javascript">
+    $(function () {
+        const $reviewListContainer = $(".review-list-container");
+        const $thumbnailContainer = $(".mypage-item > .mypage-item-info > .thumbnail-container");
+        const $zoomImageView = $(".mypage-item-zoom-image-view");
+        const $reviewUpdateBtn = $("button.review-update-btn");
+        const $reviewDeleteBtn = $("button.review-delete-btn");
+        const $reviewForm = $("form.review-form");
+        const $reviewRank = $reviewForm.find(".form-group > input.rank");
+        const $reviewContent = $reviewForm.find(".form-group > textarea.content");
+        const $reviewImageFileInput = $reviewForm.find(".form-group > input[type=file].image-file-input");
+        const $reviewImageView = $reviewImageFileInput.siblings(".image-view");
+        const $reviewFeedback = $reviewForm.find(".form-group > .invalid-feedback");
+
+        const $reviewDeleteModal = $("#reviewDeleteModal");
+        const $reviewDeleteModalForm = $("#reviewDeleteModalForm");
+        const $reviewDeleteModalNoBtn = $("#reviewDeleteModalNoBtn");
+
+        let reviewToDelete = null;
+        let reviewId = null;
+
+        /*<![CDATA[*/
+
+        let reviewCount = /*[[${reviewList.size()}]]*/;
+        const reviewList = {};
+        /*[# th:each="r : ${reviewList}"]*/
+        reviewList["[[${r.id}]]"] = {
+            rank: /*[[${r.rank}]]*/,
+            content: /*[[${r.content}]]*/,
+            image: /*[[${r.image}]]*/
+        };
+        /*[/]*/
+
+        /*]]>*/
+
+        // 확대된 리뷰 이미지 보기
+        $thumbnailContainer.css('cursor', 'pointer');
+        $thumbnailContainer.click(function (e) {
+            $reviewForm.hide();
+
+            const $currentZoomImageView = $(e.currentTarget).closest("li.mypage-item-container").find(".mypage-item-zoom-image-view");
+            $zoomImageView.each(function (idx, el) {
+                if ($currentZoomImageView.is(el)) {
+                    $currentZoomImageView.toggle();
+                } else {
+                    el.style.display = 'none';
+                }
+            });
+        });
+
+        // review update form 열기
+        $reviewUpdateBtn.click(function (e) {
+            $zoomImageView.hide();
+            clearForm();
+
+            const $currentReview = $(e.currentTarget).closest("li.mypage-item-container");
+            const $currentReviewForm = $currentReview.find("form.review-form");
+            const currentReview = reviewList[$currentReview.data('reviewId')];
+            $reviewForm.each(function (idx, el) {
+                if ($currentReviewForm.is(el)) {
+                    $currentReviewForm.slideToggle();
+                    if ($currentReviewForm.is(":visible")) {
+                        setReviewForm($currentReviewForm, currentReview);
+                    }
+                } else {
+                    el.style.display = 'none';
+                }
+            });
+        });
+
+        function clearForm() {
+            $reviewRank.val('');
+            $reviewRank.siblings(".star-wrapper").find("i.fa").removeClass("fa-star").addClass("fa-star-o");
+            $reviewContent.val('');
+            $reviewImageFileInput.val('');
+            $reviewImageView.html('');
+            $reviewFeedback.text('').css('display', 'none');
+        }
+
+        function setReviewForm($reviewForm, review) {
+            const $reviewRank = $reviewForm.find(".form-group > input.rank");
+            const $reviewStar = $reviewForm.find(".form-group > .star-wrapper > i.fa");
+            const $reviewContent = $reviewForm.find(".form-group > textarea.content");
+            const $reviewImageView = $reviewForm.find(".form-group > .image-view");
+
+            $reviewRank.val(review.rank);
+            $reviewStar.slice(0, review.rank).removeClass("fa-star-o").addClass("fa-star");
+            $reviewStar.slice(review.rank).removeClass("fa-star").addClass("fa-star-o");
+            $reviewContent.val(review.content);
+            if (review.image != null) {
+                const div = document.createElement("div");
+                const img = document.createElement("img");
+
+                div.className = 'image-container';
+                div.style.width = '300px';
+                div.style.height = '300px';
+                div.style.overflow = 'hidden';
+                img.className = 'image';
+                img.src = review.image;
+                img.style.width = '100%';
+
+                div.appendChild(img);
+                $reviewImageView.append(div);
+            }
+        }
+
+        // 리뷰 폼 처리
+        $reviewForm.submit(function (e) {
+            e.preventDefault();
+            e.stopPropagation();
+
+            const $currentRank = $(e.currentTarget).find(".form-group > input.rank");
+            const $currentContent = $(e.currentTarget).find(".form-group > textarea.content");
+            const $currentFeedback = $(e.currentTarget).find(".form-group > .invalid-feedback");
+            const currentImage = $(e.currentTarget).find(".form-group > .image-view > .image-container > img.image").prop('src');
+            const currentRank = parseInt($currentRank.val());
+
+            $currentFeedback.css('display', 'none');
+
+            if (![1, 2, 3, 4, 5].includes(currentRank)) {
+                $currentFeedback.text("평점을 선택해주세요.").css('display', 'block');
+                return;
+            }
+
+            if ($currentContent.val() === "") {
+                $currentFeedback.text("리뷰 내용을 입력해주세요.").css('display', 'block');
+                return;
+            } else if ($currentContent.val().length < 10) {
+                $currentFeedback.text("리뷰 내용을 최소 10자 이상 작성해주세요.").css('display', 'block');
+                return;
+            }
+
+            $.ajax({
+                contentType: "application/json; charset=utf-8",
+                method: "POST",
+                url: e.currentTarget.action,
+                data: JSON.stringify({
+                    "rank": currentRank,
+                    "content": $currentContent.val(),
+                    "image": currentImage
+                })
+            }).done(function (data, status) {
+                const id = new URL(e.currentTarget.action).pathname.split("/")[2];
+                reviewList[id] = {
+                    rank: currentRank,
+                    content: $currentContent.val(),
+                    image: currentImage
+                };
+                alert("리뷰를 수정했습니다.");
+            }).fail(function (jqXHR, textStatus, errorThrown) {
+                $currentFeedback.text(jqXHR.responseJSON.message).css('display', 'block');
+            });
+        });
+
+        // 리뷰 삭제 처리
+        $reviewDeleteBtn.click(function (e) {
+            reviewToDelete = e.currentTarget.closest(".mypage-item-container");
+            reviewId = reviewToDelete.dataset.reviewId;
+        });
+
+        $reviewDeleteModalNoBtn.click(function (e) {
+            reviewId = reviewToDelete = null;
+        });
+
+        $reviewDeleteModal.on('hide.bs.modal', function () {
+            reviewId = reviewToDelete = null;
+        });
+
+        $reviewDeleteModalForm.submit(function (e) {
+            e.preventDefault();
+            e.stopPropagation();
+
+            $.ajax({
+                method: "POST",
+                url: "/review/" + reviewId + "/delete"
+            }).done(function (data, status) {
+                reviewCount--;
+                if (reviewCount > 0) {
+                    reviewToDelete.remove();
+                } else {
+                    const $noneItem = $(`<div class="none-item">작성한 리뷰가 없습니다.</div>`);
+                    $reviewListContainer.html($noneItem);
+                }
+                $reviewDeleteModal.modal('hide');
+                alert("리뷰가 삭제처리되었습니다.");
+            }).fail(function (jqXHR, textStatus, errorThrown) {
+                setFeedback(jqXHR);
+            });
+        });
+    });
+</script>
+
+</body>
+</html>

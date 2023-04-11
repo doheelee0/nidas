@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <div th:include="fragments.html :: head" th:remove="tag"></div>
+    <link rel="stylesheet" href="/css/mypage.css">
+</head>
+<body>
+
+<div th:replace="fragments.html :: main-nav"></div>
+<div class="mypage">
+    <div th:replace="fragments.html :: mypage-nav"></div>
+    <div class="mypage-contents">
+        <div class="paragraph-title">
+            <h2>취소/교환/환불 목록</h2>
+        </div>
+        <div class="mypage-content-wrapper">
+            <div class="mypage-content-title">교환/환불 정책</div>
+            <small class="text-muted">
+                환불이 완료되면 작성된 리뷰가 삭제되고 마일리지도 회수됩니다.<br />
+                삭제되어도 다시 교환/환불 신청을 할 수 있습니다.(단, 배송완료일로부터 1주일 이내의 주문만 가능)
+            </small>
+        </div>
+        <div class="mypage-content-wrapper">
+            <div class="container-fluid cancel-list-container">
+                <div class="mypage-content-title">주문 취소 목록</div>
+                <div th:if="${cancelList.isEmpty()}" class="none-item">주문을 취소한 상품이 없습니다.</div>
+                <ul th:if="${!cancelList.isEmpty()}" class="mypage-list">
+                    <li th:each="od : ${cancelList}" class="mypage-item-container"
+                        th:with="o=${od.order},
+                                 pd=${od.productDetails},
+                                 p=${od.productDetails.product}">
+                        <div class="mypage-item">
+                            <div class="mypage-item-info">
+                                <div th:replace="fragments.html :: thumbnail-container(thumbnail = ${p.thumbnail})"></div>
+                                <div class="info-wrapper">
+                                    <div class="info-title">
+                                        <div>
+                                            <span th:text="${p.name}"></span> -
+                                            [<span th:text="${pd.color.name()}"></span>][<span th:text="${pd.size.getValue()}"></span>mm]
+                                            x <span th:text="${od.quantity}"></span>개 구매
+                                        </div>
+                                    </div>
+                                    <div class="info">
+                                        <div class="text-end"><small class="date" th:text="${o.createdDateTime}"></small></div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="mypage-item-extra-info">
+                                <a th:href="@{'/product/' + ${p.id}}" class="mypage-btn">상품상세</a>
+                                <a th:href="@{'/mypage/order/' + ${o.orderNumber}}" class="mypage-btn">주문정보조회</a>
+                            </div>
+                        </div>
+                    </li>
+                </ul>
+            </div>
+        </div>
+        <div class="mypage-content-wrapper">
+            <div class="container-fluid returning-list-container">
+                <div class="mypage-content-title">교환중/환불중인 목록</div>
+                <div th:if="${returningList.isEmpty()}" class="none-item">교환 및 환불중인 상품이 없습니다.</div>
+                <th:block th:if="${!returningList.isEmpty()}">
+                    <ul class="mypage-list">
+                        <li th:each="r : ${returningList}" class="mypage-item-container"
+                            th:with="od=${r.orderDetails},
+                             o=${r.orderDetails.order},
+                             pd=${r.orderDetails.productDetails},
+                             p=${r.orderDetails.productDetails.product}" th:data-returns-id="${r.id}">
+                            <div class="mypage-item">
+                                <div class="mypage-item-info">
+                                    <div th:replace="fragments.html :: thumbnail-container(thumbnail = ${r.image})"></div>
+                                    <div class="info-wrapper">
+                                        <div class="info-title">
+                                            <div>
+                                                <span th:text="${p.name}"></span> -
+                                                [<span th:text="${pd.color.name()}"></span>][<span th:text="${pd.size.getValue()}"></span>mm]
+                                                x <span th:text="${od.quantity}"></span>개 구매
+                                            </div>
+                                        </div>
+                                        <div class="info">
+                                            <div class="text-end"><small th:text="${r.type.getName()}"></small></div>
+                                            <div class="text-end">
+                                                <small><span class="date" th:text="${r.createdDateTime}"></span> ~</small>
+                                            </div>
+                                            <div class="message"><span th:text="${r.content}" style="white-space: pre;"></span></div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="mypage-item-extra-info">
+                                    <div class="order-status" th:text="${od.status.getName()}"></div>
+                                    <a th:href="@{'/product/' + ${p.id}}" class="mypage-btn">상품상세</a>
+                                    <a th:href="@{'/mypage/order/' + ${o.orderNumber}}" class="mypage-btn">주문정보조회</a>
+                                    <button type="button" class="mypage-btn returns-delete-btn" data-bs-toggle="modal" data-bs-target="#returnsDeleteModal">삭제하기</button>
+                                </div>
+                            </div>
+                            <div th:replace="fragments.html :: mypage-zoom-image(image=${r.image})"></div>
+                        </li>
+                    </ul>
+                    <div id="returnsDeleteModal" class="modal fade" tabindex="-1" aria-hidden="true">
+                        <div class="modal-dialog">
+                            <div class="modal-content">
+                                <div class="modal-body">
+                                    반환신청을 취소하시겠습니까?<br />
+                                    취소하더라도 다시 주문 목록에서 반환신청을 하실 수 있습니다.
+                                </div>
+                                <div class="modal-footer">
+                                    <button id="returnsDeleteModalNoBtn" type="button" class="btn btn-secondary" data-bs-dismiss="modal">아니오</button>
+                                    <form id="returnsDeleteModalForm" method="post" th:action="@{''}">
+                                        <button type="submit" class="btn btn-danger">네</button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </th:block>
+            </div>
+        </div>
+        <div class="mypage-content-wrapper">
+            <div class="container-fluid returned-list-container">
+                <div class="mypage-content-title">교환완료/환불완료 목록</div>
+                <div th:if="${returnedList.isEmpty()}" class="none-item">교환 및 환불을 완료한 상품이 없습니다.</div>
+                <ul th:if="${!returnedList.isEmpty()}" class="mypage-list">
+                    <li th:each="r : ${returnedList}" class="mypage-item-container"
+                        th:with="od=${r.orderDetails},
+                             o=${r.orderDetails.order},
+                             pd=${r.orderDetails.productDetails},
+                             p=${r.orderDetails.productDetails.product}">
+                        <div class="mypage-item">
+                            <div class="mypage-item-info">
+                                <div th:replace="fragments.html :: thumbnail-container(thumbnail = ${r.image})"></div>
+                                <div class="info-wrapper">
+                                    <div class="info-title">
+                                        <div>
+                                            <span th:text="${p.name}"></span> -
+                                            [<span th:text="${pd.color.name()}"></span>][<span th:text="${pd.size.getValue()}"></span>mm]
+                                            x <span th:text="${od.quantity}"></span>개 구매
+                                        </div>
+                                    </div>
+                                    <div class="info">
+                                        <div class="text-end"><small th:text="${r.type.getName()}"></small></div>
+                                        <div class="text-end">
+                                            <small><span class="date" th:text="${r.createdDateTime}"></span> ~
+                                                <span class="date" th:text="${r.completedDateTime}"></span></small>
+                                        </div>
+                                        <div class="message"><span th:text="${r.content}" style="white-space: pre;"></span></div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="mypage-item-extra-info">
+                                <div class="order-status" th:text="${od.status.getName()}"></div>
+                                <a th:href="@{'/product/' + ${p.id}}" class="mypage-btn">상품상세</a>
+                                <a th:href="@{'/mypage/order/' + ${o.orderNumber}}" class="mypage-btn">주문정보조회</a>
+                            </div>
+                        </div>
+                        <div th:replace="fragments.html :: mypage-zoom-image(image=${r.image})"></div>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div th:replace="fragments.html :: main-footer"></div>
+<div th:include="fragments.html :: common-js-func" th:remove="tag"></div>
+<div th:include="fragments.html :: date-format" th:remove="tag"></div>
+<div th:replace="fragments.html :: ajax-csrf-header"></div>
+<div th:replace="fragments.html :: ajax-feedback-message"></div>
+<script type="application/javascript" th:inline="javascript">
+    $(function () {
+        const $returningListContainer = $(".returning-list-container")
+        const $thumbnailContainer = $(".mypage-item > .mypage-item-info > .thumbnail-container");
+        const $zoomImageView = $(".mypage-item-zoom-image-view");
+        const $returnsDeleteBtn = $("button.returns-delete-btn");
+
+        const $returnsDeleteModal = $("#returnsDeleteModal");
+        const $returnsDeleteModalForm = $("#returnsDeleteModalForm");
+        const $returnsDeleteModalNoBtn = $("#returnsDeleteModalNoBtn");
+
+        let returnsId = null;
+        let returnsToDelete = null;
+
+        /*<![CDATA[*/
+
+        let returningCount = /*[[${returningList.size()}]]*/;
+
+        /*]]>*/
+
+        // 확대된 반품 물품 이미지 보기
+        $thumbnailContainer.css('cursor', 'pointer');
+        $thumbnailContainer.click(function (e) {
+            const $currentZoomImageView = $(e.currentTarget).closest("li.mypage-item-container").find(".mypage-item-zoom-image-view");
+            $zoomImageView.each(function (idx, el) {
+                if ($currentZoomImageView.is(el)) {
+                    $currentZoomImageView.toggle();
+                } else {
+                    el.style.display = 'none';
+                }
+            });
+        });
+
+        // 반품중인 물품 삭제 처리
+        $returnsDeleteBtn.click(function (e) {
+            returnsToDelete = e.currentTarget.closest(".mypage-item-container");
+            returnsId = returnsToDelete.dataset.returnsId;
+        });
+
+        $returnsDeleteModalNoBtn.click(function (e) {
+            returnsId = returnsToDelete = null;
+        });
+
+        $returnsDeleteModal.on('hide.bs.modal', function () {
+            returnsId = returnsToDelete = null;
+        });
+
+        $returnsDeleteModalForm.submit(function (e) {
+            e.preventDefault();
+            e.stopPropagation();
+
+            $.ajax({
+                method: "POST",
+                url: "/returns/" + returnsId + "/delete"
+            }).done(function (data, status) {
+                returningCount--;
+                if (returningCount > 0) {
+                    returnsToDelete.remove();
+                } else {
+                    const $noneItem = $(`<div class="mypage-content-title">교환중/환불중인 목록</div>
+                                        <div class="none-item">교환 및 환불중인 상품이 없습니다.</div>`);
+                    $returningListContainer.html($noneItem);
+                }
+                $returnsDeleteModal.modal('hide');
+                alert("반품신청이 취소처리되었습니다.");
+            }).fail(function (jqXHR, textStatus, errorThrown) {
+                setFeedback(jqXHR);
+            });
+        });
+    });
+</script>
+</body>
+</html>

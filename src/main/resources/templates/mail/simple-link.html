@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Nidas</title>
+</head>
+<body>
+
+<div>
+    <p>안녕하세요. <span th:text="${name}"></span>님</p>
+    <p><span th:text="${message}"></span></p>
+    <p><a th:href="${host + link}" th:text="${linkName}"></a></p>
+</div>
+<footer>
+    <small>&copy; Nidas All Rights Reserved</small>
+</footer>
+
+</body>
+</html>

@@ -1,0 +1,397 @@
+.mypage {
+    display: flex;
+    padding: 0 1.5rem;
+}
+
+.mypage-nav {
+    width: 200px;
+    display: flex;
+    align-items: start;
+    justify-content: start;
+    margin-top: 5rem;
+    flex-direction: column;
+}
+
+.mypage-nav-title,
+.mypage-content-title {
+    font-size: 1.3rem;
+    margin: 2rem 0 1rem;
+}
+
+.mypage-content-wrapper {
+    margin-top: 4rem;
+}
+
+.mypage-content-title {
+    border-bottom: 2px solid black;
+}
+
+.mypage-content-wrapper > form {
+    min-width: 396px;
+    max-width: 525px;
+}
+
+.mypage-card {
+    font-size: 4rem;
+    color: white;
+    background-color: rgba(0, 0, 0, 0.85);
+    text-align: center;
+    margin-top: 1rem;
+    margin-bottom: 2rem;
+    max-width: 500px;
+}
+
+.mypage-card .card-body {
+    padding: 0;
+}
+
+.mypage-list > .mypage-item-container.opened {
+    background-color: #F5F5F5;
+}
+
+/* 버튼 */
+
+.mypage-btn {
+    display: inline-block;
+    color: #6c757d;
+    font-size: 1rem;
+    font-weight: 400;
+    line-height: 1.5;
+    text-align: center;
+    text-decoration: none;
+    vertical-align: middle;
+    cursor: pointer;
+    user-select: none;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    background-color: transparent;
+    border: 1px solid #6C757D;
+    border-radius: 0;
+    margin-top: 0.3rem;
+    padding: 0.2rem 1rem;
+    transition: color .15s ease-in-out,background-color .15s ease-in-out,border-color .15s ease-in-out,box-shadow .15s ease-in-out;
+}
+
+.mypage-btn:hover {
+    color: #fff;
+    background-color: #6C757D;
+}
+
+/* 즐겨찾기 목록 */
+
+.product-card .btn-close {
+    position: absolute;
+    top: 0;
+    right: 0;
+    z-index: 1;
+    padding: 0.5rem 0.5rem 0 0;
+    width: 40px;
+    height: 40px;
+    background-size: 2rem;
+}
+
+/* 주문 목록 */
+
+.order-status-group {
+    margin-top: 1rem;
+}
+
+.order-status-group > .order-status {
+    display: inline-block;
+    background-color: black;
+    color: white;
+    font-weight: bold;
+    border-radius: 50%;
+    width: 95px;
+    height: 95px;
+    text-align: center;
+    vertical-align: middle;
+    line-height: 100px;
+}
+
+.order-status-group > .right-arrow {
+    display: inline-block;
+    border: 1px solid black;
+    border-width: 0 3px 3px 0;
+    padding: 3px;
+    transform: rotate(-45deg);
+    -webkit-transform: rotate(-45deg);
+}
+
+.mypage-list {
+    width: 100%;
+    margin: 0 auto;
+}
+
+.mypage-list > .mypage-item-container {
+    padding: 1rem 0;
+    border-bottom: 1px solid #afafaf;
+}
+
+.mypage-list > .mypage-item-container > .mypage-item {
+    display: flex;
+    justify-content: center;
+    align-items: start;
+}
+
+.mypage-item > .mypage-item-info {
+    flex: 1 1 auto;
+    display: flex;
+    width: 100%;
+}
+
+.mypage-item > .mypage-item-info > .thumbnail-container {
+    flex: 0 0 auto;
+}
+
+.mypage-item > .mypage-item-info > .info-wrapper {
+    padding: 0 1rem;
+    flex: 1 1 auto;
+}
+
+.info-wrapper > .info-title {
+    font-size: 1.3rem;
+}
+
+.info-wrapper > .info > .message {
+    border-top: 1px solid #ced4da;
+    padding-top: 10px;
+    margin-top: 10px;
+}
+
+.mypage-item > .mypage-item-extra-info {
+    flex: 0 0 auto;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    width: 130px;
+}
+
+.mypage-item > .mypage-item-extra-info > .option-btn-group {
+    width: 100%;
+    display: flex;
+    flex-wrap: wrap;
+    flex-direction: column;
+    align-items: center;
+}
+
+.mypage-item .order-status {
+    letter-spacing: 2px;
+    color: #555555;
+}
+
+form.order-exchange-form,
+form.order-return-form {
+    display: none;
+}
+
+form.order-exchange-form > .form-group,
+form.order-return-form > .form-group {
+    width: 435px;
+}
+
+form.order-exchange-form > .form-group > textarea.form-control,
+form.order-return-form > .form-group > textarea.form-control {
+    height: 300px;
+    resize: none;
+}
+
+form.order-exchange-form > .form-group > .image-view,
+form.order-return-form > .form-group > .image-view {
+    display: flex;
+    flex-wrap: wrap;
+    margin-top: 20px;
+}
+
+/* 주문 상세 페이지 */
+
+.inline-card {
+    border: 5px solid rgba(0, 0, 0, 0.1);
+    border-radius: 0;
+    max-width: 900px;
+    margin: 0 auto;
+}
+
+.inline-card > .card-body {
+    display: flex;
+    font-size: 1.2rem;
+    padding: 0.5rem;
+    justify-content: center;
+}
+
+.inline-card > .card-body > .card-row {
+    display: flex;
+}
+
+.inline-card > .card-body > .card-row > .card-column {
+    width: 80px;
+    flex: 0 0 auto;
+}
+
+.inline-card > .card-body > .card-row > .card-text {
+    flex: 1 1 auto;
+    letter-spacing: 2px;
+}
+
+.details-card {
+    border: 2px solid rgba(0, 0, 0, 0.1);
+    padding: 0;
+}
+
+.details-card > .card-body {
+    padding-top: 0;
+}
+
+.details-card > .card-body > .card-row {
+    display: flex;
+    margin-top: 1rem;
+}
+
+.details-card > .card-body > .card-row > .card-column {
+    width: 150px;
+    flex: 0 0 auto;
+}
+
+.details-card > .card-body > .card-row > .card-text {
+    flex: 1 1 auto;
+}
+
+/* 리뷰 페이지 */
+
+form.review-form > .form-group > input.form-control,
+form.review-form > .form-group > textarea.form-control {
+    width: 435px;
+}
+
+form.review-form > .form-group > textarea.form-control {
+    height: 300px;
+    resize: none;
+}
+
+form.review-form,
+form.review-form > .form-group > .star-wrapper > i.fa > input.star {
+    display: none;
+    cursor: pointer;
+}
+
+form.review-form > .form-group > .star-wrapper > i.fa {
+    font-size: 1.8rem;
+    color: #4A148C;
+}
+
+form.review-form > .form-group > .star-wrapper > i.fa:hover {
+    transform: rotate(-15deg) scale(1.3);
+    -webkit-transform: rotate(-15deg) scale(1.3);
+}
+
+form.review-form > .form-group > .image-view {
+    display: flex;
+    flex-wrap: wrap;
+}
+
+.mypage-item-zoom-image-view {
+    display: none;
+}
+
+.mypage-item-zoom-image-container {
+    width: 400px;
+    height: 400px;
+    display: flex;
+    align-items: center;
+}
+
+.mypage-item-zoom-image {
+    width: 100%;
+}
+
+/* Q&A 페이지 */
+
+.qna-reply {
+    display: none;
+    margin-top: 30px;
+}
+
+.qna-reply > .title {
+    font-size: 1.1rem;
+    color: #0074D9;
+}
+
+@media (min-width: 768px) {
+    .mypage-contents {
+        width: calc(100% - 200px);
+        padding-left: 2rem;
+    }
+
+    .mypage-btn {
+        width: 100%;
+    }
+
+    .inline-card > .card-body > .card-row:not(:last-child) {
+        border-right: 2px solid rgba(0, 0, 0, 0.1);
+        padding-right: 1rem;
+        margin-right: 1rem;
+    }
+}
+
+@media (max-width: 767px) {
+    .mypage {
+        flex-direction: column;
+    }
+
+    .mypage-nav,
+    .mypage-nav > .navbar-nav {
+        width: 100%;
+        margin-top: 0;
+    }
+
+    .mypage-nav > .navbar-nav > .mypage-nav-title {
+        width: 100%;
+        margin: 0.5rem 0;
+        border-bottom: 3px solid rgba(0, 0, 0, 0.5);
+    }
+
+    .mypage-nav .nav-link {
+        padding-top: 0;
+    }
+
+    .mypage-contents {
+        padding-left: 0;
+    }
+
+    .mypage-list > .mypage-item-container > .mypage-item {
+        flex-direction: column;
+        align-items: end;
+    }
+
+    .info-wrapper > .info-title {
+        padding-bottom: 10px;
+    }
+
+    .mypage-item > .mypage-item-extra-info {
+        width: 100%;
+        align-items: end;
+    }
+
+    .mypage-item > .mypage-item-extra-info > .option-btn-group {
+        flex-direction: row;
+        gap: 5px;
+    }
+
+    .mypage-item > .mypage-item-info > .info-wrapper {
+        padding-right: 0;
+    }
+
+    .inline-card > .card-body {
+        flex-direction: column;
+        padding: 5px 20px;
+    }
+
+    .inline-card > .card-body > .card-row {
+        padding: 5px 0;
+    }
+
+    .inline-card > .card-body > .card-row:not(:last-child) {
+        border-bottom: 2px solid rgba(0, 0, 0, 0.1);
+    }
+}

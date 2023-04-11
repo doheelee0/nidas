@@ -1,0 +1,271 @@
+.order-container {
+    display: flex;
+    justify-content: space-between;
+    padding: 0 1.5rem;
+    margin-top: 2rem;
+}
+
+input.order-input {
+    max-width: 500px;
+    padding: .375rem .75rem;
+    font-weight: 400;
+    line-height: 1.5;
+    color: #212529;
+    border: 1px solid #ced4da;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+}
+
+input.order-input:focus {
+    outline: none;
+}
+
+/* 주문 외 정보 */
+
+.order-container > .rest-info-container {
+    display: flex;
+    flex-direction: column;
+    width: 58%;
+}
+
+.rest-info-container > .rest-info-wrapper {
+    border-top: 3px solid black;
+    margin-bottom: 20px;
+}
+
+.rest-info-container > .rest-info-wrapper > .rest-info-title {
+    font-size: 1.2rem;
+    font-weight: 600;
+    padding: 20px 0;
+    border-bottom: 1px solid #afafaf;
+}
+
+.rest-info-container > .rest-info-wrapper > .rest-info {
+    position: relative;
+    padding: 20px 0 20px 0;
+}
+
+.rest-info > .info-wrapper {
+    display: flex;
+    align-items: center;
+    padding-bottom: 10px;
+}
+
+.rest-info > .info-wrapper > .info-title {
+    flex: 0 0 auto;
+    display: inline-block;
+    width: 110px;
+    margin-right: 10px;
+}
+
+.rest-info > .info-wrapper > .info {
+    flex: 1 1 auto;
+}
+
+/* 주문자 정보 */
+
+.rest-info > .verification {
+    padding-top: 15px;
+}
+
+.rest-info > .verification .message {
+    font-size: 0.9rem;
+    color: #6C757D;
+}
+
+.rest-info > .verification a.verification-link {
+    display: inline-block;
+    padding: 15px 60px;
+    border-radius: 0;
+    color: white;
+    background-color: black;
+    margin-top: 10px;
+}
+
+/* 배송 정보 */
+
+.rest-info > .info-wrapper > .delivery-address-wrapper {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+/* 마일리지 정보 */
+
+.rest-info-wrapper > .mileage-info-wrapper {
+    display: flex;
+    align-items: center;
+}
+
+.mileage-info-wrapper > input.order-input {
+    width: 168px;
+    text-align: right;
+    margin-right: 0.5rem;
+}
+
+#mileageUseAllBtn {
+    background-color: black;
+    color: white;
+    padding: 6px 10px;
+    border-radius: 0;
+}
+
+.rest-info-wrapper > .mileage-info-wrapper .possession-mileage {
+    letter-spacing: 2px;
+    margin-right: auto;
+}
+
+/* 주문 정보 */
+
+.order-container > .order-info-container {
+    border: 3px solid black;
+    position: sticky;
+    top: 0;
+    width: 40%;
+    padding: 20px;
+    height: fit-content;
+}
+
+.order-info-container > .order-info-wrapper:not(:last-child) {
+    padding-bottom: 10px;
+}
+
+.order-info-container > .order-info-wrapper > .order-info-title {
+    font-size: 1.2rem;
+    font-weight: 600;
+    padding: 5px 0;
+    border-bottom: 2px solid black;
+    text-align: center;
+}
+
+.order-info-container > .order-info-wrapper:not(:last-child) > .order-info {
+    padding-bottom: 10px;
+    border-bottom: 1px solid #afafaf;
+}
+
+.order-info-wrapper > .order-product-details-wrapper > .order-product-details {
+    display: flex;
+    padding-top: 10px;
+}
+
+.order-info-wrapper > .order-product-details-wrapper > .order-product-details:not(:last-child) {
+    padding-bottom: 10px;
+    border-bottom: 1px solid black;
+}
+
+.order-product-details-wrapper > .order-product-details > .product-info {
+    flex: 1 1 auto;
+    display: flex;
+    flex-wrap: wrap;
+    flex-direction: column;
+    text-align: left;
+    padding-left: 15px;
+}
+
+.order-product-details > .product-info > .info-title {
+    font-weight: 700;
+    padding-bottom: 5px;
+}
+
+.order-product-details > .product-info > .info {
+    font-size: 0.8rem;
+}
+
+.order-info > table.price-info {
+    margin: 0;
+}
+
+.order-info > table.price-info > tbody > tr > th,
+.order-info > table.price-info > tbody > tr > td {
+    border: none;
+    font-weight: 100;
+}
+
+.order-info > table.price-info > tbody > tr > th {
+    width: 120px;
+}
+
+.order-info > table.price-info > tbody > tr > td {
+    text-align: right;
+}
+
+#totalPaymentPrice {
+    font-size: 1.5rem;
+    font-weight: 900;
+}
+
+#checkoutBtn {
+    font-weight: 900;
+    letter-spacing: 3px;
+    color: white;
+    background-color: black;
+    width: 100%;
+    border-radius: 0;
+    padding: 10px 40px;
+    margin-top: 10px;
+}
+
+.order-info-wrapper > .invalid-feedback-wrapper {
+    text-align: center;
+    padding-bottom: 5px;
+}
+
+/* 주문 완료 */
+
+.order-finished {
+    display: flex;
+    flex-wrap: wrap;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    margin-top: 8rem;
+}
+
+.order-finished > .message {
+    color: black;
+    font-size: 1.8rem;
+    letter-spacing: 5px;
+    text-align: center;
+}
+
+.order-finished > .shopping-link-group {
+    text-align: center;
+    width: 70%;
+}
+
+.order-finished > .shopping-link-group > .shopping-link {
+    display: inline-block;
+    width: 45%;
+    border: 2px solid #afafaf;
+    border-radius: 0;
+    background-color: white;
+    padding: 20px 35px;
+    color: black;
+    font-size: 1.5rem;
+    letter-spacing: 3px;
+    text-align: center;
+    margin-top: 3rem;
+}
+
+@media (max-width: 767px) {
+    .order-container {
+        flex-direction: column;
+        margin-top: 1rem;
+    }
+
+    .order-container > .rest-info-container,
+    .order-container > .order-info-container {
+        width: 100%;
+    }
+
+    .order-container > .order-info-container {
+        position: relative;
+        padding: 10px;
+    }
+
+    .order-finished > .shopping-link-group > .shopping-link {
+        width: 100%;
+        padding: 15px 15px;
+    }
+}

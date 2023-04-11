@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <div th:include="fragments.html :: head" th:remove="tag"></div>
+    <link rel="stylesheet" href="/css/admin.css">
+</head>
+<body>
+
+<div class="admin-page">
+    <div th:replace="fragments.html :: admin-page-sidebar(currentMenu = 'account')"></div>
+    <div class="admin-page-contents">
+        <div class="admin-page-title">
+            <h2><span th:text="${account.name}"></span>회원님의 상세정보</h2>
+        </div>
+        <div class="admin-page-content-wrapper">
+            <div class="admin-page-sub-title">기본정보</div>
+            <div class="admin-table-wrapper">
+                <table class="table admin-table">
+                    <tbody>
+                    <tr>
+                        <th scope="row"><div>이메일</div></th>
+                        <td><div th:text="${account.email}"></div></td>
+                    </tr>
+                    <tr>
+                        <th scope="row"><div>이름(성별)</div></th>
+                        <td>
+                            <div>
+                                <span th:text="${account.name}"></span>
+                                (<span th:text="${account.gender.getName()}"></span>)
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row"><div>생일</div></th>
+                        <td><div th:text="${account.birthday}"></div></td>
+                    </tr>
+                    <tr>
+                        <th scope="row"><div>휴대폰번호</div></th>
+                        <td><div th:text="${account.phoneNumber}" class="phone-format"></div></td>
+                    </tr>
+                    <tr>
+                        <th scope="row"><div>주소</div></th>
+                        <td>
+                            <div>
+                                <span th:if="${account.address1 != null}">(<span th:text="${account.address1}"></span>)</span>
+                                <span th:text="${account.address2}"></span>
+                                <span th:text="${account.address3}"></span>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row"><div>주문금액(주문횟수)</div></th>
+                        <td>
+                            <div>
+                                <span th:text="${account.totalPayment}" class="price-format"></span>원
+                                (<span th:text="${account.totalOrder}"></span>)
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row"><div>마일리지</div></th>
+                        <td><div><span th:text="${account.mileage}" class="price-format"></span>원</div></td>
+                    </tr>
+                    <tr>
+                        <th scope="row"><div>멤버쉽</div></th>
+                        <td><div th:text="${account.membership.getName()}"></div></td>
+                    </tr>
+                    <tr>
+                        <th scope="row"><div>인증여부(가입일)</div></th>
+                        <td>
+                            <div>
+                                <span th:text="${account.emailVerified ? '인증됨' : '미인증'}"></span>
+                                (<span th:text="${account.emailVerified ? account.joinedDateTime : '미가입'}" th:classappend="${account.emailVerified}?date"></span>)
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row"><div>탈퇴여부(최근접속일)</div></th>
+                        <td>
+                            <div>
+                                <span th:text="${account.deleted ? '탈퇴함' : '활동중'}"></span>
+                                (<span th:text="${account.latestLoginDateTime}" class="date"></span>)
+                            </div>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <div class="admin-page-content-wrapper">
+            <div class="admin-page-sub-title">주문내역</div>
+            <div class="admin-table-wrapper">
+                <table class="table admin-table order-table">
+                    <thead>
+                        <tr>
+                            <th scope="col">#</th>
+                            <th scope="col">주문번호</th>
+                            <th scope="col">주문정보</th>
+                            <th scope="col">주문한 물품들</th>
+                            <th scope="col">주문상태</th>
+                            <th scope="col">리뷰여부</th>
+                        </tr>
+                    </thead>
+                </table>
+            </div>
+        </div>
+        <div class="admin-page-content-wrapper">
+            <div class="admin-page-sub-title">리뷰내역</div>
+            <div class="admin-table-wrapper">
+                <table class="table admin-table review-table">
+                    <thead>
+                        <tr>
+                            <th scope="col">#</th>
+                            <th scope="col">상품정보</th>
+                            <th scope="col">평점</th>
+                            <th scope="col">내용</th>
+                            <th scope="col">리뷰이미지</th>
+                            <th scope="col">작성일(수정일)</th>
+                            <th scope="col">삭제여부</th>
+                        </tr>
+                    </thead>
+                </table>
+            </div>
+        </div>
+        <div class="admin-page-content-wrapper">
+            <div class="admin-page-sub-title">Q&A내역</div>
+            <div class="admin-table-wrapper">
+                <table class="table admin-table qna-table">
+                    <thead>
+                        <tr>
+                            <th scope="col">#</th>
+                            <th scope="col">상품정보</th>
+                            <th scope="col">문의종류</th>
+                            <th scope="col">내용</th>
+                            <th scope="col">비밀글여부</th>
+                            <th scope="col">작성일</th>
+                            <th scope="col">답글여부</th>
+                        </tr>
+                    </thead>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div th:include="fragments.html :: admin-common-js-func" th:remove="tag"></div>
+<div th:replace="fragments.html :: price-with-comma"></div>
+<div th:include="fragments.html :: date-format" th:remove="tag"></div>
+<div th:replace="fragments.html :: phone-format"></div>
+<div th:replace="fragments.html :: ajax-csrf-header"></div>
+<script type="application/javascript" th:inline="javascript">
+    $(function () {
+        const $orderTable = $("table.order-table");
+        const $reviewTable = $("table.review-table");
+        const $qnaTable = $("table.qna-table");
+
+        /*<![CDATA[*/
+
+        const accountId = [[${account.id}]];
+
+        /*]]>*/
+
+        // 주문 테이블 정보 로딩
+        $.ajax({
+            method: "GET",
+            dataType: "json",
+            url: "/admin/management/account/" + accountId + "/order"
+        }).done(function (data, status) {
+            const $tbody = $("<tbody></tbody>");
+            let count = 1;
+            data.forEach((order, idx) => {
+                const orderDetailsList = order.orderDetailsList;
+                const rowspan = orderDetailsList.length;
+                let $tr = $("<tr></tr>");
+                $tr.append($("<td></td>").prop('scope', 'row').prop('rowspan', rowspan).append($("<span></span>").text(count++)));
+                $tr.append($("<td></td>").prop('rowspan', rowspan).append($("<span></span>").text(order.orderNumber)));
+                $tr.append($("<td></td>").prop('rowspan', rowspan).append(`
+                    <div class="summary-info-container">
+                        <div class="summary-info-wrapper">
+                            <div class="summary-info"><span>${order.receiver}</span></div>
+                            <div class="summary-info">
+                                (<span>${order.address1}</span>)
+                                <span>${order.address2}</span>
+                                <span>${order.address3}</span>
+                            </div>
+                            <div class="summary-info"><span class="price-format">${order.totalPrice}</span>원</div>
+                            <div class="summary-info"><span>${order.createdDateTime}</span></div>
+                            <div class="summary-info"><span>${order.arrivalDateTime == null ? '도착안함' : order.arrivalDateTime}</span></div>
+                        </div>
+                    </div>
+                `));
+                for (let i = 0; i < rowspan; i++) {
+                    const orderDetails = order.orderDetailsList[i];
+                    if (i > 0) {
+                        $tr = $("<tr></tr>");
+                    }
+                    $tr.append($("<td></td>").append(`
+                        <div class="summary-info-container">
+                        <div class="thumbnail-container">
+                            <img src="${orderDetails.thumbnail == null ? '/images/no_image.png' : orderDetails.thumbnail}" class="thumbnail" alt="&times;" />
+                        </div>
+                            <div class="summary-info-wrapper">
+                                <div class="summary-info">
+                                    <span>${orderDetails.name}</span>
+                                </div>
+                                <div class="summary-info">
+                                    (<span>${orderDetails.color}</span> - <span>${orderDetails.size}</span>mm)
+                                    x <span>${orderDetails.quantity}</span>
+                                </div>
+                            </div>
+                        </div>
+                    `));
+                    $tr.append($("<td></td>").append($("<span></span>").text(orderDetails.status)));
+                    $tr.append($("<td></td>").append($("<span></span>").text(orderDetails.reviewed ? '리뷰함' : '리뷰안함')));
+                    $tbody.append($tr);
+                }
+            });
+            $orderTable.append($tbody);
+            formatPrice();
+        });
+
+        // 리뷰 테이블 정보 로딩
+        $.ajax({
+            method: "GET",
+            dataType: "json",
+            url: "/admin/management/account/" + accountId + "/review"
+        }).done(function (data, status) {
+            const $tbody = $("<tbody></tbody>");
+            let count = 1;
+            data.forEach((review, idx) => {
+                const $tr = $("<tr></tr>");
+                $tr.append($("<td></td>").prop('scope', 'row').append($("<span></span>").text(count++)));
+                $tr.append($("<td></td>").append(`
+                    <div class="summary-info-container">
+                        <div class="thumbnail-container">
+                            <img src="${review.productThumbnail == null ? '/images/no_image.png' : review.productThumbnail}" class="thumbnail" alt="&times;" />
+                        </div>
+                        <div class="summary-info-wrapper">
+                            <div class="summary-info"><div>${review.productName}</div></div>
+                        </div>
+                    </div>
+                `));
+                $tr.append($("<td></td>").append($("<span></span>").text(review.rank)));
+                $tr.append($("<td></td>").addClass('content').append($("<span></span>").text(review.content)));
+                $tr.append($("<td></td>").append(`
+                    <div class="thumbnail-container">
+                        <img src="${review.image == null ? '/images/no_image.png' : review.image}" class="thumbnail" alt="&times;" />
+                    </div>
+                `));
+                $tr.append($("<td></td>").append(`
+                    <div><span>${review.createdDateTime}</span></div>
+                    <div>(<span>${review.updateDateTime == null ? '수정안함' : review.updateDateTime}</span>)</div>
+                `));
+                $tr.append($("<td></td>").append($("<span></span>").text(review.deleted ? '삭제됨' : '게시중')));
+                $tbody.append($tr);
+            });
+            $reviewTable.append($tbody);
+        });
+
+        // Q&A 테이블 정보 로딩
+        $.ajax({
+            method: "GET",
+            dataType: "json",
+            url: "/admin/management/account/" + accountId + "/qna"
+        }).done(function (data, status) {
+            const $tbody = $("<tbody></tbody>");
+            let count = 1;
+            data.forEach((qna, idx) => {
+                const $tr = $("<tr></tr>");
+                $tr.append($("<td></td>").prop('scope', 'row').append($("<span></span>").text(count++)));
+                $tr.append($("<td></td>").append(`
+                    <div class="summary-info-container">
+                        <div class="thumbnail-container">
+                            <img src="${qna.productThumbnail == null ? '/images/no_image.png' : qna.productThumbnail}" class="thumbnail" alt="&times;" />
+                        </div>
+                        <div class="summary-info-wrapper">
+                            <div class="summary-info"><div>${qna.productName}</div></div>
+                        </div>
+                    </div>
+                `));
+                $tr.append($("<td></td>").append($("<span></span>").text(qna.type)));
+                $tr.append($("<td></td>").addClass('content').append($("<span></span>").text(qna.content)));
+                $tr.append($("<td></td>").append($("<span></span>").text(qna.secret ? '비밀글' : '일반글')));
+                $tr.append($("<td></td>").append($("<span></span>").text(qna.createdDateTime)));
+                $tr.append($("<td></td>").append($("<span></span>").text(qna.replied ? '답변됨' : '답변없음')));
+                $tbody.append($tr);
+            });
+            $qnaTable.append($tbody);
+        });
+    });
+</script>
+
+</body>
+</html>

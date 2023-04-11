@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <div th:include="fragments.html :: head" th:remove="tag"></div>
+    <link rel="stylesheet" href="/css/mypage.css">
+</head>
+<body>
+
+<div th:replace="fragments.html :: main-nav"></div>
+<div class="mypage">
+    <div th:replace="fragments.html :: mypage-nav"></div>
+    <div class="mypage-contents">
+        <div class="paragraph-title">
+            <h2>멤버쉽 조회</h2>
+        </div>
+        <div class="mypage-content-wrapper">
+            <div class="mypage-content-title">내 등급 보기</div>
+            <small class="text-muted">
+                일정 금액이상 구매하게 되면 등급이 자동으로 상승하게 됩니다. 등급에 따라 각종 혜택을 받으실 수 있습니다.
+            </small>
+            <div class="card mypage-card">
+                <div class="card-body">
+                    <span class="text-uppercase" th:text="${account.membership.getName()}"></span>
+                </div>
+            </div>
+            <table class="table">
+                <thead class="thead-dark">
+                    <tr>
+                        <th scope="col">등급</th>
+                        <th scope="col">구매횟수</th>
+                        <th scope="col">구매금액</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td scope="row"><span th:text="${account.membership.getName()}"></span></td>
+                        <td><span th:text="${account.totalOrder}"></span>회</td>
+                        <td><span class="price-format" th:text="${account.totalPayment}"></span>원</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        <div class="mypage-content-wrapper">
+            <div class="mypage-content-title">등급별 혜택 보기</div>
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th scope="col">회원등급</th>
+                        <th scope="col">구매금액</th>
+                        <th scope="col">할인혜택</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="m: ${T(com.nidas.modules.account.Membership).values()}" style="color:rgba(0,0,0,0.6);">
+                        <td scope="row"><span class="fw-bold" style="color: black;" th:text="${m.getName()}"></span></td>
+                        <td><span><span class="price-format" th:text="${m.getLowerBound()}"></span>원 이상 ~</span>
+                            <span th:if="${m.getUpperBound()}"><span class="price-format" th:text="${m.getUpperBound()}"></span>원 미만</span></td>
+                        <td><span th:text="${m.getBenefits()}"></span></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<div th:replace="fragments.html :: main-footer"></div>
+<div th:include="fragments.html :: common-js-func" th:remove="tag"></div>
+<div th:replace="fragments.html :: price-with-comma"></div>
+
+</body>
+</html>

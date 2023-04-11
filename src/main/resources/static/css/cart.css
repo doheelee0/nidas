@@ -1,0 +1,287 @@
+/* 장바구니 물품 테이블 */
+
+.cart-items > .cart-item-table-wrapper {
+    margin: 5rem 0 1rem;
+}
+
+table.cart-item-table > thead > tr > th,
+table.cart-item-table > tbody > tr > td {
+    border-bottom: 1px solid #ced2d6;
+    vertical-align: middle;
+    text-align: center;
+}
+
+table.cart-item-table > thead > tr > th {
+    border-top: 1px solid #ced2d6;
+    padding: 20px 0;
+    font-size: 1.1rem;
+}
+
+table.cart-item-table > tbody > tr > td {
+    padding: 15px 0;
+    border-right: 1px solid #ced2d6;
+}
+
+table.cart-item-table > tbody > tr > td:first-child,
+table.cart-item-table > tbody > tr > td:last-child {
+    border-right: none;
+}
+
+table.cart-item-table > tbody > tr:last-child > td {
+    border-bottom: 1px solid black;
+}
+
+table.cart-item-table > thead > tr > th:first-child,
+table.cart-item-table > tbody > tr > td:first-child {
+    padding-right: 10px;
+}
+
+table.cart-item-table > thead > tr > th:first-child > input[type=checkbox].option-checkbox,
+table.cart-item-table > tbody > tr > td:first-child > input[type=checkbox].option-checkbox {
+    margin: 0 auto;
+}
+
+table.cart-item-table > thead > tr > th.all-select-checkbox > .all-select-checkbox-message {
+    display: none;
+}
+
+.cart-item-product-details-wrapper {
+    display: flex;
+    flex-wrap: wrap;
+}
+
+.cart-item-product-details-wrapper > .cart-item-product-details {
+    display: flex;
+    flex-wrap: wrap;
+    flex: 1 1 auto;
+}
+
+.cart-item-product-details-wrapper > .cart-item-delete-btn-wrapper {
+    padding-right: 10px;
+}
+
+.cart-item-product-details > .cart-item-product-image-view {
+    flex: 0 0 auto;
+}
+
+.cart-item-product-details > .cart-item-product-info-view {
+    flex: 1 1 auto;
+    display: flex;
+    flex-wrap: wrap;
+    flex-direction: column;
+    text-align: left;
+    padding-left: 15px;
+}
+
+.cart-item-product-info-view > div:not(:first-child) {
+    font-size: 0.8rem;
+}
+
+.cart-item-product-info-view > div:not(:last-child) {
+    padding-bottom: 4px;
+}
+
+.cart-item-product-info-view > div:first-child {
+    padding-bottom: 10px;
+}
+
+.cart-item-order {
+    letter-spacing: 3px;
+}
+
+/* 장바구니 옵션 */
+
+.cart-items > .cart-item-option-container {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+}
+
+.cart-items > .cart-item-option-container > .cart-item-option {
+    flex: 1 1 auto;
+}
+
+.cart-items > .cart-item-option-container > .cart-item-option > button {
+    border: 2px solid red;
+    border-radius: 0;
+}
+
+/* 주문 가격 정보 */
+
+.cart-items > .cart-total-price-info {
+    margin-top: 5rem;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: center;
+    border-top: 3px solid black;
+    border-bottom: 1px solid black;
+}
+
+.cart-items > .cart-total-price-info > .price-info-wrapper {
+    flex: 1 1 auto;
+    display: flex;
+    flex-wrap: wrap;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+.cart-items > .cart-total-price-info > .price-info-wrapper > .price-info-title {
+    width: 100%;
+    text-align: center;
+    padding: 20px 0;
+    font-size: 1.2rem;
+    border-bottom: 1px solid #afafaf;
+}
+
+.cart-items > .cart-total-price-info > .price-info-wrapper > .price-info {
+    width: 100%;
+    text-align: center;
+    padding: 30px 0;
+    font-size: 1.5rem;
+    font-weight: 800;
+}
+
+/* 버튼 */
+
+button.order-btn {
+    border: 2px solid black;
+    border-radius: 0;
+    color: white;
+    background-color: black;
+    padding: 10px 20px;
+}
+
+button.order-btn:hover {
+    color: white;
+    background-color: black;
+}
+
+.cart-order-btn-wrapper {
+    margin-top: 5rem;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: center;
+}
+
+.cart-order-btn-wrapper > a.shopping-link {
+    border: 2px solid #afafaf;
+    border-radius: 0;
+    color: black;
+    background-color: white;
+    padding: 10px 35px;
+    margin-right: 10px;
+}
+
+/* 장바구니 비었을 떄 */
+.no-items {
+    display: flex;
+    flex-wrap: wrap;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    margin-top: 8rem;
+}
+
+.no-items > .message {
+    color: black;
+    font-size: 1.8rem;
+    letter-spacing: 5px;
+    text-align: center;
+}
+
+.no-items > .shopping-link {
+    width: 30%;
+    border: 2px solid #afafaf;
+    border-radius: 0;
+    background-color: white;
+    padding: 20px 35px;
+    color: black;
+    font-size: 1.5rem;
+    letter-spacing: 3px;
+    text-align: center;
+    margin-top: 3rem;
+}
+
+@media (max-width: 767px) {
+    table.cart-item-table > thead > tr > th,
+    table.cart-item-table > tbody > tr > td,
+    table.cart-item-table > tbody > tr:last-child > td {
+        border: none;
+    }
+
+    table.cart-item-table > tbody > tr:last-child {
+        border-bottom: 1px solid black;
+    }
+
+    table.cart-item-table > thead > tr > th {
+        display: none;
+    }
+
+    table.cart-item-table > thead > tr > th.all-select-checkbox {
+        display: block;
+        padding: 0 0 10px 0;
+        text-align: left;
+    }
+
+    table.cart-item-table > thead > tr > th.all-select-checkbox > .all-select-checkbox-message {
+        display: inline-block;
+        font-weight: 300;
+    }
+
+    table.cart-item-table > :not(:first-child) {
+        border: none;
+    }
+
+    table.cart-item-table > tbody > tr {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: flex-start;
+        border-top: 3px solid black;
+    }
+
+    table.cart-item-table > tbody > tr:last-child {
+        border-bottom: 3px solid black;
+    }
+
+    table.cart-item-table > tbody > tr > td {
+        padding: 10px 0 0 0;
+        width: 100%;
+        text-align: left;
+    }
+
+    table.cart-item-table > tbody > tr > td:first-child {
+        padding-top: 20px;
+    }
+
+    table.cart-item-table > tbody > tr > td:last-child {
+        padding-bottom: 10px;
+    }
+
+    .count-box {
+        justify-content: flex-start;
+        margin-bottom: 10px;
+    }
+
+    .count-box > button,
+    .count-box > input.count-box-input {
+        width: 28px;
+        height: 28px;
+    }
+
+    table.cart-item-table > tbody > tr > td.cart-item-order,
+    table.cart-item-table > tbody > tr > td.cart-item-duration {
+        display: none;
+    }
+
+    .cart-items > .cart-item-option-container {
+        flex-direction: column;
+    }
+
+    .cart-items > .cart-item-option-container > .cart-item-option {
+        padding-bottom: 5px;
+    }
+}

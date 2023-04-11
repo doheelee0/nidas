@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <div th:include="fragments.html :: head" th:remove="tag"></div>
+    <link rel="stylesheet" href="/css/help.css">
+</head>
+<body>
+
+<div th:replace="fragments.html :: main-nav"></div>
+<div class="help-page">
+    <div th:replace="fragments.html :: help-nav(currentMenu = 'notice')"></div>
+    <div class="help-page-contents">
+        <div class="paragraph-title">
+            <h2>공지사항</h2>
+        </div>
+        <div class="help-page-content-wrapper">
+            <div th:replace="fragments.html :: help-search(action = '/notice-list')"></div>
+            <table class="table help-page-table">
+                <thead class="thead-dark">
+                    <tr>
+                        <th scope="col" class="th-left">#</th>
+                        <th scope="col" class="th-middle">제목</th>
+                        <th scope="col" class="th-right">게시일</th>
+                    </tr>
+                </thead>
+                <tbody th:with="offset=${noticePage.getNumber() * noticePage.getSize()},
+                                noticeList = ${noticePage.getContent()}">
+                    <tr th:each="n : ${noticeList}">
+                        <td class="td-left" scope="row"><span th:text="${offset + nStat.count}"></span></td>
+                        <td class="td-middle">
+                            <div class="title" th:text="${n.title}"></div>
+                            <div class="content" th:utext="${n.content}"></div>
+                        </td>
+                        <td class="td-right"><span class="date" th:text="${n.createdDateTime}"></span></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        <div th:replace="fragments.html :: pagination(page = ${noticePage}, url = '/notice-list', querystring = 'keyword=' + ${keyword})"></div>
+    </div>
+</div>
+
+<div th:replace="fragments.html :: main-footer"></div>
+<div th:include="fragments.html :: common-js-func" th:remove="tag"></div>
+<div th:include="fragments.html :: date-format" th:remove="tag"></div>
+<script type="application/javascript">
+    $(function () {
+        const $noticeListItems = $("table.help-page-table > tbody > tr");
+        const $noticeContents = $noticeListItems.find("td.td-middle > .content");
+
+        // 공지사항 내용 보기
+        $noticeListItems.css('cursor', 'pointer');
+        $noticeListItems.click(function (e) {
+            const $currentNotice = $(e.currentTarget);
+            const $currentNoticeContent = $currentNotice.find("td.td-middle > .content");
+
+            $noticeListItems.not($currentNotice).removeClass('opened');
+            $currentNotice.toggleClass('opened');
+            $noticeContents.not($currentNoticeContent).hide();
+            $currentNoticeContent.toggle();
+        });
+    });
+</script>
+
+</body>
+</html>

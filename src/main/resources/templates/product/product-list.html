@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <div th:include="fragments.html :: head" th:remove="tag"></div>
+    <link rel="stylesheet" href="/css/product.css">
+</head>
+<body>
+
+<div th:replace="fragments.html :: main-nav"></div>
+<div class="product-page"
+     th:with="keywords=${productSearchForm.keywords},
+              mainCategory=${productSearchForm.mainCategory},
+              subCategory=${productSearchForm.subCategory},
+              discount=${productSearchForm.discount},
+              exceptSoldOut=${productSearchForm.exceptSoldOut},
+              recent=${productSearchForm.recent},
+              minPrice=${productSearchForm.minPrice},
+              maxPrice=${productSearchForm.maxPrice},
+              color=${productSearchForm.color},
+              sorting=${productSearchForm.sorting}">
+    <nav class="navbar navbar-light product-sidebar">
+        <div class="product-category">
+            <span id="mainCategory" th:text="${mainCategory != null ? mainCategory : ''}"></span>
+            <span id="subCategory" th:text="${subCategory != null ? '/' + subCategory.getName() : ''}"></span>
+        </div>
+        <div class="product-sidebar-top">
+            <span>필터</span>
+            <button id="searchReset" type="button" class="btn btn-link text-secondary float-end">초기화</button>
+        </div>
+        <ul class="product-info-filter">
+            <li class="filter-title">상품정보</li>
+            <li>
+                <div class="form-check">
+                    <input id="discount" type="checkbox" class="form-check-input" th:checked="${discount}" />
+                    <label for="discount" class="form-check-label">할인상품만</label>
+                </div>
+            </li>
+            <li>
+                <div class="form-check">
+                    <input id="exceptSoldOut" type="checkbox" class="form-check-input" th:checked="${exceptSoldOut}" />
+                    <label for="exceptSoldOut" class="form-check-label">품절상품 제외</label>
+                </div>
+            </li>
+            <li>
+                <div class="form-check">
+                    <input id="recent" type="checkbox" class="form-check-input" th:checked="${recent}" />
+                    <label for="recent" class="form-check-label">신상품(3개월)만</label>
+                </div>
+            </li>
+        </ul>
+        <ul class="price-filter">
+            <li class="filter-title">가격대</li>
+            <li>
+                <input id="priceRange1" type="radio" name="priceRange" class="form-check-input" value="0~2147483647" checked />
+                <label for="priceRange1" class="form-check-label">전체</label>
+            </li>
+            <li>
+                <input id="priceRange2" type="radio" name="priceRange" class="form-check-input" value="0~10000" />
+                <label for="priceRange2" class="form-check-label price-format"> 10000원 이하</label>
+            </li>
+            <li>
+                <input id="priceRange3" type="radio" name="priceRange" class="form-check-input" value="10000~50000" />
+                <label for="priceRange3" class="form-check-label price-format"> 10000원 ~ 50000원</label>
+            </li>
+            <li>
+                <input id="priceRange4" type="radio" name="priceRange" class="form-check-input" value="50000~100000" />
+                <label for="priceRange4" class="form-check-label price-format"> 50000원 ~ 100000원</label>
+            </li>
+            <li>
+                <input id="priceRange5" type="radio" name="priceRange" class="form-check-input" value="100000~500000" />
+                <label for="priceRange5" class="form-check-label price-format"> 100000원 ~ 500000원</label>
+            </li>
+            <li>
+                <input id="priceRange6" type="radio" name="priceRange" class="form-check-input" value="500000~2147483647" />
+                <label for="priceRange6" class="form-check-label price-format"> 500000원 이상</label>
+            </li>
+        </ul>
+        <ul class="color-filter">
+            <li class="filter-title">색상</li>
+            <li th:each="c : ${T(com.nidas.modules.product.Color).values()}" class="color-container">
+                <input type="checkbox" th:id="${'color' + cStat.count}" th:value="${c}" th:checked="${#strings.contains(color, c.toString())}" />
+                <label th:for="${'color' + cStat.count}" class="color-circle" th:style="${c == T(com.nidas.modules.product.Color).WHITE
+                        ? 'background-color: ' + c + ';border: 1px solid #e4e4e4;' : 'background-color: ' + c}"></label>
+            </li>
+        </ul>
+    </nav>
+    <div class="product-contents">
+        <div class="search-box">
+            <div class="search-number-wrapper">
+                총 <span class="search-number" th:text="${productPage.getTotalElements()}"></span> 개의 검색 결과가 있습니다.
+            </div>
+            <select id="sorting">
+                <option th:each="s : ${T(com.nidas.modules.product.Sorting).values()}" th:value="${s}" th:text="${s.getName()}"
+                        th:selected="${s == sorting}"></option>
+            </select>
+            <button id="search" type="button" class="btn btn-dark">조건검색</button>
+        </div>
+        <div class="container-fluid">
+            <div th:replace="fragments.html :: product-list(productList = ${productPage.getContent()})"></div>
+        </div>
+        <div th:replace="fragments.html :: pagination(page = ${productPage}, url = '/products', querystring = |keywords=${keywords}&mainCategory=${mainCategory == null ? '' : mainCategory}&subCategory=${subCategory == null ? '' : subCategory}&discount=${discount}&exceptSoldOut=${exceptSoldOut}&recent=${recent}&minPrice=${minPrice}&maxPrice=${maxPrice}&color=${color}&sorting=${sorting}|)"></div>
+    </div>
+</div>
+
+<div th:replace="fragments.html :: main-footer"></div>
+<div th:include="fragments.html :: common-js-func" th:remove="tag"></div>
+<div th:replace="fragments.html :: price-with-comma"></div>
+<div th:replace="fragments.html :: ajax-csrf-header"></div>
+<div th:replace="fragments.html :: ajax-feedback-message"></div>
+<script type="application/javascript" th:inline="javascript">
+    $(function () {
+        const $keywords = $("#keywords");
+        const $discount = $("#discount");
+        const $exceptSoldOut = $("#exceptSoldOut");
+        const $recent = $("#recent");
+        const $priceRange = $("input[name=priceRange]");
+        const $color = $("input[type=checkbox][id^=color]");
+        const $sorting = $("#sorting");
+
+        const $searchBtn = $("button#search");
+        const $resetBtn = $("button#searchReset");
+        const $favoritesBtn = $(".product-card button.heart");
+        let favoritesProductIdList = [];
+
+        /*<![CDATA[*/
+
+        const authenticated = [[${authenticated}]];
+        const mainCategory = /*[[${productSearchForm.mainCategory} == null ? '' : ${productSearchForm.mainCategory}]]*/;
+        const subCategory = /*[[${productSearchForm.subCategory} == null ? '' : ${productSearchForm.subCategory.getName()}]]*/;
+        const minPrice = [[${productSearchForm.minPrice}]];
+        const maxPrice = [[${productSearchForm.maxPrice}]];
+        const productList = {};
+        /*[# th:each="p : ${productPage.getContent()}"]*/
+        productList["[[${p.id}]]"] = {
+            favoritesCount: /*[[${p.favoritesCount}]]*/
+        };
+        /*]]>*/
+
+        /*[/]*/
+
+        // 현재 가격대 체크
+        const price = minPrice + "~" + maxPrice;
+        $("input[name=priceRange]").each(function (idx, el) {
+            if (el.value === price) el.checked = true;
+        });
+
+        // 즐겨찾기 체크 확인
+        if (authenticated) {
+            $.ajax({
+                method: "GET",
+                url: "/favorites/products"
+            }).done(function (data, status) {
+                if (data.length > 0) {
+                    favoritesProductIdList = data.map(String);
+                    $favoritesBtn.each(function (idx, el) {
+                        const id = el.closest(".product-card-wrapper").dataset.productId;
+                        if (favoritesProductIdList.includes(id)) {
+                            $(el).find("i.fa").removeClass("fa-heart-o").addClass("fa-heart");
+                        }
+                    });
+                }
+            });
+        }
+
+        // 즐겨찾기 등록/삭제
+        $favoritesBtn.click(function (e) {
+            e.preventDefault();
+
+            if (!authenticated) {
+                alert("로그인이 필요합니다.");
+                return;
+            }
+
+            const productId = e.currentTarget.closest(".product-card-wrapper").dataset.productId;
+            if (favoritesProductIdList.includes(productId)) {
+                $.ajax({
+                    method: "POST",
+                    url: "/favorites/product/" + productId + "/remove"
+                }).done(function (data, status) {
+                    favoritesProductIdList.splice(favoritesProductIdList.indexOf(productId), 1);
+                    const favoritesCount = --productList[productId].favoritesCount;
+                    $(e.currentTarget).find("i.fa").addClass('fa-heart-o').removeClass('fa-heart');
+                    $(e.currentTarget).find(".favorites-count").text(favoritesCount);
+                }).fail(function (jqXHR, textStatus, errorThrown) {
+                    setFeedback(jqXHR);
+                });
+            } else {
+                $.ajax({
+                    method: "POST",
+                    url: "/favorites/product/" + productId + "/add"
+                }).done(function (data, status) {
+                    favoritesProductIdList.push(productId);
+                    const favoritesCount = ++productList[productId].favoritesCount;
+                    $(e.currentTarget).find("i.fa").addClass('fa-heart').removeClass('fa-heart-o');
+                    $(e.currentTarget).find(".favorites-count").text(favoritesCount);
+                }).fail(function (jqXHR, textStatus, errorThrown) {
+                    setFeedback(jqXHR);
+                });
+            }
+        });
+
+        // 상품 검색
+        $searchBtn.click(function (e) {
+            let formUrl = '/products?'
+                + 'keywords=' + $keywords.val()
+                + '&mainCategory=' + mainCategory
+                + '&subCategory=' + subCategory.replace("&", "%26") // ampersand escaping
+                + '&discount=' + $discount.prop('checked')
+                + '&exceptSoldOut=' + $exceptSoldOut.prop('checked')
+                + '&recent=' + $recent.prop('checked');
+
+            const minMax = $priceRange.filter(":checked")[0].value.replace(/[^0-9~]/g, '').split("~");
+            const minPrice = minMax[0] === undefined ? '' : minMax[0];
+            const maxPrice = minMax[1] === undefined ? '' : minMax[1];
+            formUrl += `&minPrice=${minPrice}&maxPrice=${maxPrice}`;
+
+            formUrl += '&color=';
+            $color.filter(":checked").each(function (idx, el) {
+                if (idx === 0) formUrl += el.value;
+                else formUrl += ',' + el.value;
+            });
+
+            formUrl += `&sorting=${$sorting.val()}`;
+            location.href = formUrl;
+        });
+
+        // 검색 옵션 초기화
+        $resetBtn.click(function (e) {
+            $keywords.val('');
+            $discount.prop('checked', false);
+            $exceptSoldOut.prop('checked', false);
+            $recent.prop('checked', false);
+            $priceRange.filter(":first").prop('checked', true);
+            $color.prop('checked', false);
+            $sorting.val($sorting.find("option:first").val());
+        });
+    });
+</script>
+
+</body>
+</html>

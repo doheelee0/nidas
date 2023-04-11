@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <div th:include="fragments.html :: head" th:remove="tag"></div>
+    <link rel="stylesheet" href="/css/mypage.css">
+</head>
+<body>
+
+<div th:replace="fragments.html :: main-nav"></div>
+<div class="mypage">
+    <div th:replace="fragments.html :: mypage-nav"></div>
+    <div class="mypage-contents">
+        <div class="paragraph-title">
+            <h2>주문 상세 내용</h2>
+        </div>
+        <div class="mypage-content-wrapper">
+            <div class="card inline-card">
+                <div class="card-body">
+                    <div class="card-row">
+                        <span class="card-column">주문번호:</span>
+                        <span class="card-text" th:text="${order.orderNumber}"></span>
+                    </div>
+                    <div class="card-row">
+                        <span class="card-column">주문일자:</span>
+                        <span class="card-text date" th:text="${order.createdDateTime}"></span>
+                    </div>
+                    <div class="card-row">
+                        <span class="card-column">도착일자:</span>
+                        <span th:if="${order.arrivalDateTime == null}" class="card-text">도착안함</span>
+                        <span th:if="${order.arrivalDateTime != null}" class="card-text date" th:text="${order.arrivalDateTime}"></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="mypage-content-wrapper">
+            <div class="mypage-content-title">함께 주문한 목록</div>
+            <ul class="mypage-list">
+                <li th:each="od : ${order.orderDetails}" class="mypage-item-container"
+                    th:with="pd=${od.productDetails},
+                             p=${od.productDetails.product}">
+                    <div class="mypage-item">
+                        <div class="mypage-item-info">
+                            <div th:replace="fragments.html :: thumbnail-container(thumbnail = ${p.thumbnail})"></div>
+                            <div class="info-wrapper">
+                                <div class="info-title">
+                                    <span th:text="${p.name}"></span>
+                                    (<span th:text="${pd.color.name()}"></span> - <span th:text="${pd.size.getValue()}"></span>mm)
+                                    x <span th:text="${od.quantity}"></span>
+                                </div>
+                                <div class="info text-end">
+                                    <div class="order-status" th:text="${od.status.getName()}"></div>
+                                    <div><span class="price-format" th:text="${od.unitPrice * od.quantity}"></span>원</div>
+                                    <div><small class="date" th:text="${order.createdDateTime}"></small></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </li>
+            </ul>
+        </div>
+        <div class="mypage-content-wrapper">
+            <div class="mypage-content-title">배송지 정보</div>
+            <div class="card details-card">
+                <div class="card-body">
+                    <div class="card-row">
+                        <span class="card-column">수령인</span>
+                        <span class="card-text" th:text="${order.receiver}"></span>
+                    </div>
+                    <div class="card-row">
+                        <span class="card-column">연락처</span>
+                        <span class="card-text phone-format" th:text="${order.phoneNumber}"></span>
+                    </div>
+                    <div class="card-row">
+                        <span class="card-column">배송지</span>
+                        <div class="card-text">
+                            <div><span th:text="${order.address1}"></span></div>
+                            <div><span th:text="${order.address2}"></span></div>
+                            <div><span th:text="${order.address3}"></span></div>
+                        </div>
+                    </div>
+                    <div class="card-row">
+                        <span class="card-column">배송시 요청사항</span>
+                        <span class="card-text" th:text="${order.deliveryRequest}"></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="mypage-content-wrapper">
+            <div class="mypage-content-title">결제 정보</div>
+            <div class="card details-card">
+                <div class="card-body">
+                    <div class="card-row">
+                        <span class="card-column">주문금액(+)</span>
+                        <div class="card-text"><span class="price-format" th:text="${order.totalPrice}"></span>원</div>
+                    </div>
+                    <div class="card-row">
+                        <span class="card-column">배송비(+)</span>
+                        <div class="card-text"><span class="price-format" th:text="${order.deliveryPrice}"></span>원</div>
+                    </div>
+                    <div class="card-row">
+                        <span class="card-column">마일리지 사용(-)</span>
+                        <div class="card-text"><span class="price-format" th:text="${order.mileageUsage}"></span>원</div>
+                    </div>
+                    <hr />
+                    <div class="card-row">
+                        <span class="card-column">결제 금액</span>
+                        <div class="card-text"><span class="price-format" th:text="${order.totalPrice + order.deliveryPrice - order.mileageUsage}"></span>원</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div th:replace="fragments.html :: main-footer"></div>
+<div th:include="fragments.html :: common-js-func" th:remove="tag"></div>
+<div th:replace="fragments.html :: price-with-comma"></div>
+<div th:include="fragments.html :: date-format" th:remove="tag"></div>
+<div th:replace="fragments.html :: phone-format"></div>
+
+</body>
+</html>

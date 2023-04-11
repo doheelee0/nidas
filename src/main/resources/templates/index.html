@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+
+<div th:replace="fragments.html :: head"></div>
+<body>
+
+<div th:replace="fragments.html :: main-nav"></div>
+<div th:replace="fragments.html :: main-banner"></div>
+<div class="container">
+    <h2 class="paragraph-title">가장 많이 팔린 상품들</h2>
+    <div class="row row-cols-lg-3 row-cols-2">
+        <div th:each="product : ${productBest}" class="col card simple-product-card">
+            <div class="big-thumbnail-container">
+                <img th:src="${#strings.isEmpty(product.thumbnail) ? '/images/no_image.png' : product.thumbnail}" class="thumbnail" alt="&times;" />
+            </div>
+            <div class="card-body ms-3">
+                <h5 class="card-title" th:text="${product.name}"></h5>
+                <p class="card-text">
+                    <div><span th:text="${product.mainCategory}"></span> / <span th:text="${product.subCategory.getName()}"></span></div>
+                    <div th:replace="fragments.html :: price-container(product = ${product})"></div>
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <h2 class="paragraph-title">새로 나온 상품들</h2>
+    <div class="row row-cols-lg-3 row-cols-2">
+        <div th:each="product : ${productNew}" class="col card simple-product-card">
+            <div class="big-thumbnail-container">
+                <img th:src="${#strings.isEmpty(product.thumbnail) ? '/images/no_image.png' : product.thumbnail}" class="thumbnail" alt="&times;" />
+            </div>
+            <div class="card-body ms-3">
+                <h5 class="card-title" th:text="${product.name}"></h5>
+                <p class="card-text">
+                <div><span th:text="${product.mainCategory}"></span> / <span th:text="${product.subCategory.getName()}"></span></div>
+                <div th:replace="fragments.html :: price-container(product = ${product})"></div>
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <h2 class="paragraph-title">최근 많이 팔린 상품들</h2>
+    <div class="row row-cols-lg-3 row-cols-2">
+        <div th:each="product : ${productHot}" class="col card simple-product-card">
+            <div class="big-thumbnail-container">
+                <img th:src="${#strings.isEmpty(product.thumbnail) ? '/images/no_image.png' : product.thumbnail}" class="thumbnail" alt="&times;" />
+            </div>
+            <div class="card-body ms-3">
+                <h5 class="card-title" th:text="${product.name}"></h5>
+                <p class="card-text">
+                <div><span th:text="${product.mainCategory}"></span> / <span th:text="${product.subCategory.getName()}"></span></div>
+                <div th:replace="fragments.html :: price-container(product = ${product})"></div>
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+<div th:replace="fragments.html :: main-footer"></div>
+<div th:include="fragments.html :: common-js-func" th:remove="tag"></div>
+<div th:replace="fragments.html :: price-with-comma"></div>
+
+</body>
+</html>

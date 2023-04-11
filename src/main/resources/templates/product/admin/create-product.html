@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <div th:include="fragments.html :: head" th:remove="tag"></div>
+    <link rel="stylesheet" href="/css/admin.css">
+</head>
+<body>
+
+<div class="admin-page">
+    <div th:replace="fragments.html :: admin-page-sidebar(currentMenu = 'product')"></div>
+    <div class="admin-page-contents">
+        <div class="admin-page-title">
+            <h2>상품추가</h2>
+            <div th:replace="fragments.html :: backward(url = '/admin/management/product')"></div>
+        </div>
+        <div class="admin-page-content-wrapper admin-form-wrapper">
+            <div th:replace="fragments.html :: product-form(url = '/admin/management/product/create', mode = 'new')"></div>
+        </div>
+    </div>
+</div>
+
+<div th:include="fragments.html :: admin-common-js-func" th:remove="tag"></div>
+<div th:replace="fragments.html :: price-with-comma"></div>
+<div th:include="fragments.html :: summernote-editor" th:remove="tag"></div>
+<div th:replace="fragments.html :: ajax-csrf-header"></div>
+<div th:replace="fragments.html :: ajax-feedback-message"></div>
+<script type="application/javascript" th:inline="javascript">
+    $(function () {
+        const $mainCategory = $("#mainCategory");
+        const $subCategory = $("#subCategory");
+        const $name = $("#name");
+        const $price = $("#price");
+        const $discountRate = $("#discountRate");
+        const $material = $("#material");
+        const $madeIn = $("#madeIn");
+        const $washing = $("#washing");
+        const $description = $("#description");
+        const $images = $("#images");
+        const $imageView = $images.siblings(".image-view");
+        const $details = $("#details");
+
+        const $categoryFeedback = $mainCategory.siblings(".invalid-feedback");
+        const $nameFeedback = $name.siblings(".invalid-feedback");
+        const $priceFeedback = $price.siblings(".invalid-feedback");
+        const $discountRateFeedback = $discountRate.siblings(".invalid-feedback");
+        const $materialFeedback = $material.siblings(".invalid-feedback");
+        const $madeInFeedback = $madeIn.siblings(".invalid-feedback");
+        const $washingFeedback = $washing.siblings(".invalid-feedback");
+        const $descriptionFeedback = $description.siblings(".invalid-feedback");
+        const $imagesFeedback = $images.siblings(".invalid-feedback");
+        const $detailsFeedback = $details.siblings(".invalid-feedback");
+
+        const $rowAddBtn = $("form.admin-form > .form-group table.admin-table > tbody td button.row-addition");
+
+        let imageCount = 0;
+        let sequence = 0;
+
+        /*<![CDATA[*/
+
+        const colorList = /*[[${colorList}]]*/;
+
+        /*]]>*/
+
+        // image 처리
+        $images.change(function (e) {
+            const files = $(this)[0].files;
+            $imagesFeedback.text('').css('display', 'none');
+
+            if (imageCount + files.length > 10) {
+                $images.val('');
+                $imagesFeedback.text("최대 10개까지 첨부할 수 있습니다.").css('display', 'block');
+            } else {
+                imageCount += files.length;
+                Object.keys(files).forEach(i => {
+                    const file = files[i];
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        if (e.target.result && e.target.result.startsWith("data:image")) {
+                            const div = document.createElement("div");
+                            const img = document.createElement("img");
+                            const button = document.createElement("button");
+
+                            div.className = 'product-card-sm'
+                            img.className = 'product-img';
+                            img.src = e.target.result;
+                            button.type = 'button';
+                            button.className = 'btn-close';
+                            button.onclick = removeImage;
+
+                            div.appendChild(img);
+                            div.appendChild(button);
+                            $imageView.append(div);
+                        }
+                    }
+                    reader.readAsDataURL(file);
+                });
+            }
+        });
+
+        // 이미지 삭제
+        function removeImage(e) {
+            imageCount--;
+            e.currentTarget.closest(".product-card-sm").remove();
+        }
+
+        // 상품 추가
+        $rowAddBtn.click(function (e) {
+            const $tr = $("<tr></tr>").addClass("details-group");
+            const $colorSelect = $("<select class='color-group'><option value='' selected>컬러</option></select>");
+            colorList.forEach(function (value, idx) {
+                $colorSelect.append($(`<option value='${value}' style='background-color: ${value}'></option>`));
+            });
+
+            $tr.append(`
+                <td scope="row">
+                    <div class="seq-wrapper">
+                        <span class="row-seq">${++sequence}</span>
+                        <button type='button' class='admin-remove-btn row-removal'></button>
+                    </div>
+                </td>
+                <td>${$colorSelect[0].outerHTML}</td>
+                <td>
+                    <div class="size-group">
+                        <button type='button' class='admin-add-btn size-addition'></button>
+                    </div>
+                </td>
+                <td>
+                    <div class="stock-group">
+                        <button type='button' class='admin-add-btn stock-addition'></button>
+                    </div>
+                </td>
+            `);
+
+            $tr.find("td > .size-group > button.size-addition").click(addSize);
+            $tr.find("td > .stock-group > button.stock-addition").click(addStock);
+            $tr.find("td > .seq-wrapper > button.row-removal").click(removeRow);
+            $tr.find("td > select.color-group").change(changeColor);
+            $tr.insertBefore(e.currentTarget.closest("tr"));
+        });
+
+        // 상품 사이즈 추가
+        function addSize(e) {
+            const $size = $("<div></div>").addClass("size-wrapper")
+                .append("<input type='number' class='form-control' />")
+                .append($("<button type='button' class='admin-remove-btn'></button>").click(removeSize));
+            $size.insertBefore(e.currentTarget);
+        }
+
+        // 상품 재고 추가
+        function addStock(e) {
+            const $stock = $("<div></div>").addClass("stock-wrapper")
+                .append("<input type='number' class='form-control' />")
+                .append($("<button type='button' class='admin-remove-btn'></button>").click(removeStock));
+            $stock.insertBefore(e.currentTarget);
+        }
+
+        // 사이즈 삭제
+        function removeSize(e) {
+            e.currentTarget.closest(".size-wrapper").remove();
+        }
+
+        // 재고 삭제
+        function removeStock(e) {
+            e.currentTarget.closest(".stock-wrapper").remove();
+        }
+
+        // 상품 삭제
+        function removeRow(e) {
+            e.currentTarget.closest("tr").remove();
+            $("table.admin-table tbody > tr > td > .seq-wrapper > .row-seq").each((idx, el) => {
+                el.textContent = idx + 1;
+            });
+            sequence--;
+        }
+
+        // 색상 변경
+        function changeColor(e) {
+            e.currentTarget.style.backgroundColor = e.currentTarget.value;
+        }
+
+        // submit 유효성 검사
+        $("form.admin-form").submit(function (e) {
+            e.preventDefault();
+            e.stopPropagation();
+
+            $categoryFeedback.text("").css('display', 'none');
+            $nameFeedback.text("").css('display', 'none');
+            $priceFeedback.text("").css('display', 'none');
+            $discountRateFeedback.text("").css('display', 'none');
+            $materialFeedback.text("").css('display', 'none');
+            $madeInFeedback.text("").css('display', 'none');
+            $washingFeedback.text("").css('display', 'none');
+            $descriptionFeedback.text("").css('display', 'none');
+            $imagesFeedback.text("").css('display', 'none');
+            $detailsFeedback.text("").css('display', 'none');
+
+            let formValid = true;
+
+            if ($mainCategory.val() === "" || $subCategory.val() === "") {
+                $categoryFeedback.text("카테고리를 입력해주세요.").css('display', 'block');
+                formValid = false;
+            }
+
+            if ($name.val() === "") {
+                $nameFeedback.text("상품명을 입력해주세요.").css('display', 'block');
+                formValid = false;
+            }
+
+            if ($price.val() === "") {
+                $priceFeedback.text("가격을 입력해주세요.").css('display', 'block');
+                formValid = false;
+            } else if ($price.val() < 0) {
+                $priceFeedback.text("0원 이상이여야 합니다.").css('display', 'block');
+                formValid = false;
+            }
+
+            if ($discountRate.val() < 0) {
+                $discountRateFeedback.text("할인가는 0이상의 값이어야 합니다.").css('display', 'block');
+                formValid = false;
+            } else if ($discountRate.val() > 100) {
+                $discountRateFeedback.text("할인가는 100이하의 값이어야 합니다.").css('display', 'block');
+                formValid = false;
+            }
+
+            if ($material.val() === "") {
+                $materialFeedback.text("재료를 입력해주세요.").css('display', 'block');
+                formValid = false;
+            }
+
+            if ($madeIn.val() === "") {
+                $madeInFeedback.text("생산지를 입력해주세요.").css('display', 'block');
+                formValid = false;
+            }
+
+            if ($washing.val() === "") {
+                $washingFeedback.text("세탁법을 입력해주세요.").css('display', 'block');
+                formValid = false;
+            }
+
+            if ($description.val() === "") {
+                $descriptionFeedback.text("설명을 입력해주세요.").css('display', 'block');
+                formValid = false;
+            }
+
+            if (imageCount > 10) {
+                $imagesFeedback.text("최대 10개까지 상품 이미지를 첨부할 수 있습니다.").css('display', 'block');
+                formValid = false;
+            }
+
+            const $detailsRow = $details.find("table.admin-table > tbody > tr.details-group");
+            if ($detailsRow.length === 0) {
+                $detailsFeedback.text('상품 상세를 입력해주세요.').css('display', 'block');
+                formValid = false;
+            } else {
+                $detailsRow.each((idx, el) => {
+                    const color = $(el).find("td > select.color-group").val();
+                    const sizeArray = $(el).find("td > .size-group > .size-wrapper > input").toArray();
+                    const stockArray = $(el).find("td > .stock-group > .stock-wrapper > input").toArray();
+
+                    if (color === "") {
+                        $detailsFeedback.text("컬러를 선택하세요.").css('display', 'block');
+                        formValid = false;
+                        return false;
+                    }
+                    if (!colorList.includes(color)) {
+                        $detailsFeedback.text("잘못된 컬러 값입니다.").css('display', 'block');
+                        formValid = false;
+                        return false;
+                    }
+                    if (sizeArray.length === 0 && stockArray.length === 0) {
+                        $detailsFeedback.text("사이즈와 재고를 추가해주세요.").css('display', 'block');
+                        formValid = false;
+                        return false;
+                    }
+                    if (sizeArray.length !== stockArray.length) {
+                        $detailsFeedback.text("사이즈와 재고 개수가 일치하지 않습니다.").css('display', 'block');
+                        formValid = false;
+                        return false;
+                    }
+                    if (sizeArray.some(v => !validateNumber(v.value))) {
+                        $detailsFeedback.text("사이즈를 기재해주세요.").css('display', 'block');
+                        formValid = false;
+                        return false;
+                    }
+                    if (stockArray.some(v => !validateNumber(v.value))) {
+                        $detailsFeedback.text("재고를 기재해주세요.").css('display', 'block');
+                        formValid = false;
+                        return false;
+                    } else if (stockArray.some(v => v.value < 0)) {
+                        $detailsFeedback.text("재고는 0개 이상이어야 합니다.").css('display', 'block');
+                        formValid = false;
+                        return false;
+                    }
+
+                    sizeArray.sort();
+                    for (let i = 1; i < sizeArray.length; i++) {
+                        if (sizeArray[i - 1].value === sizeArray[i].value) {
+                            $detailsFeedback.text("중복되는 사이즈가 존재합니다.").css('display', 'block');
+                            formValid = false;
+                            return false;
+                        }
+                    }
+                });
+
+                if (formValid) {
+                    const selectedColor = $details.find("table.admin-table > tbody > tr.details-group > td > select.color-group").map((idx, el) => el.value).get();
+                    selectedColor.sort((a, b) => a.localeCompare(b));
+                    for (let i = 1; i < selectedColor.length; i++) {
+                        if (selectedColor[i - 1] === selectedColor[i]) {
+                            $detailsFeedback.text("중복되는 컬러가 존재합니다.").css('display', 'block');
+                            formValid = false;
+                            break;
+                        }
+                    }
+                }
+            }
+
+            if (formValid) {
+                // images 값 가져오기
+                const images = $imageView.find(".product-card-sm > img.product-img").map((idx, el) => ({"image": el.src})).get();
+
+                // details 값 가져오기
+                const details = [];
+                $detailsRow.each((idx, el) => {
+                    const color = $(el).find("td > select.color-group").val();
+                    const sizeArray = $(el).find("td > .size-group > .size-wrapper > input").map((idx, el) => el.value).get();
+                    const stockArray = $(el).find("td > .stock-group > .stock-wrapper > input").map((idx, el) => el.value).get();
+
+                    Object.keys(sizeArray).forEach(i => {
+                        details.push({
+                            "color": color,
+                            "size": sizeArray[i],
+                            "stock": stockArray[i]
+                        });
+                    });
+                });
+
+                // create 요청
+                $.ajax({
+                    contentType: "application/json; charset=utf-8",
+                    method: "POST",
+                    url: "/admin/management/product/create",
+                    data: JSON.stringify({
+                        "mainCategory": $mainCategory.val(),
+                        "subCategory": $subCategory.val(),
+                        "name": $name.val(),
+                        "price": $price.val(),
+                        "discountRate": $discountRate.val() === '' ? 0 : $discountRate.val(),
+                        "material": $material.val(),
+                        "madeIn": $madeIn.val(),
+                        "washing": $washing.val(),
+                        "description": $description.val(),
+                        images,
+                        details
+                    })
+                }).done(function (data, status) {
+                    imageCount = 0;
+                    sequence = 0;
+
+                    $mainCategory.val("");
+                    $subCategory.val("");
+                    $name.val("");
+                    $price.val("");
+                    $discountRate.val("");
+                    $material.val("");
+                    $madeIn.val("");
+                    $washing.val("");
+                    $description.summernote("code", "");
+                    $images.val("");
+                    $imageView.html("");
+                    $detailsRow.remove();
+                    alert("물품을 등록했습니다.");
+                }).fail(function (jqXHR, textStatus, errorThrown) {
+                    setFeedback(jqXHR);
+                });
+            }
+        });
+
+        function validateNumber(number) {
+            const regex = /^\d+$/;
+            return regex.test(number);
+        }
+    });
+</script>
+
+</body>
+</html>

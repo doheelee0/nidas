@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="fragments.html :: head"></head>
+<body>
+
+<section class="jumbotron text-center mt-5">
+    <div class="container">
+        <img src="/images/caution.png" width="360" height="360" alt="&times;" />
+        <p class="lead text-muted">
+            잘못된 요청입니다.
+        </p>
+        <p>
+            <a class="btn btn-primary my-2" th:href="@{'/'}">첫 페이지로 이동</a>
+        </p>
+    </div>
+</section>
+
+</body>
+</html>

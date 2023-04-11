@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <div th:include="fragments.html :: head" th:remove="tag"></div>
+    <link rel="stylesheet" href="/css/admin.css">
+</head>
+<body>
+
+<div class="admin-page">
+    <div th:replace="fragments.html :: admin-page-sidebar(currentMenu = 'qna')"></div>
+    <div class="admin-page-contents">
+        <div class="admin-page-title">
+            <h2>Q&A관리</h2>
+        </div>
+        <div class="admin-page-content-wrapper"
+             th:with="email=${adminQnaSearchForm.email},
+                      productName=${adminQnaSearchForm.productName},
+                      type=${adminQnaSearchForm.type},
+                      exceptReplied=${adminQnaSearchForm.exceptReplied}">
+            <div class="admin-search-bar">
+                <input id="email" type="search" placeholder="이메일을 검색해주세요." th:value="${email}">
+            </div>
+            <div class="admin-search-bar">
+                <input id="productName" type="search" placeholder="상품명을 검색해주세요." th:value="${productName}">
+            </div>
+            <div class="admin-search-filter">
+                <ul id="type" class="info-filter">
+                    <li th:each="q : ${T(com.nidas.modules.qna.QnaType).values()}">
+                        <div class="form-check">
+                            <input th:id="${q}" type="checkbox" class="form-check-input" th:value="${q}"
+                                   th:checked="${#strings.contains(type, q.toString())}">
+                            <label th:for="${q}" class="form-check-label" th:text="${q.getName()}"></label>
+                        </div>
+                    </li>
+                </ul>
+                <ul class="info-filter">
+                    <li>
+                        <div class="form-check">
+                            <input id="exceptReplied" type="checkbox" class="form-check-input" th:checked="${exceptReplied}" />
+                            <label for="exceptReplied" class="form-check-label">미답변만</label>
+                        </div>
+                    </li>
+                </ul>
+            </div>
+            <div class="admin-search-btn-wrapper">
+                <button id="search" type="button" class="btn btn-search">조건검색</button>
+                <button id="searchReset" type="button" class="btn btn-search-reset">초기화</button>
+            </div>
+            <div class="search-number-wrapper">
+                총 <span class="search-number" th:text="${qnaPage.getTotalElements()}"></span> 개의 검색 결과가 있습니다.
+            </div>
+            <div class="admin-table-wrapper">
+                <table class="table admin-table">
+                    <thead>
+                        <tr>
+                            <th scope="col">#</th>
+                            <th scope="col">사용자정보</th>
+                            <th scope="col">상품정보</th>
+                            <th scope="col">종류</th>
+                            <th scope="col">내용</th>
+                            <th scope="col">등록일</th>
+                            <th scope="col">비밀글여부</th>
+                            <th scope="col">답변여부</th>
+                        </tr>
+                    </thead>
+                    <tbody th:with="qnaList=${qnaPage.getContent()}, offset=${qnaPage.getNumber() * qnaPage.getSize()}">
+                        <tr th:each="q : ${qnaList}" th:with="a=${q.account}, p=${q.product}">
+                            <td scope="row"><span th:text="${offset + qStat.count}"></span></td>
+                            <td>
+                                <a th:href="@{'/admin/management/account/' + ${a.id}}">
+                                    <div class="summary-info-container">
+                                        <div class="summary-info-wrapper">
+                                            <div class="summary-info"><span th:text="${a.email}"></span></div>
+                                            <div class="summary-info"><span th:text="${a.name}"></span>(<span th:text="${a.gender.getName()}"></span>)</div>
+                                            <div class="summary-info"><span th:text="${a.membership.getName()}"></span></div>
+                                        </div>
+                                    </div>
+                                </a>
+                            </td>
+                            <td>
+                                <div class="summary-info-container">
+                                    <div th:replace="fragments.html :: thumbnail-container(thumbnail = ${p.thumbnail})"></div>
+                                    <div class="summary-info-wrapper">
+                                        <div class="summary-info">
+                                            <span th:text="${p.name}"></span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td><span th:text="${q.type.getName()}"></span></td>
+                            <td class="content"><span th:text="${q.content}"></span></td>
+                            <td><span th:text="${q.createdDateTime}" class="date"></span></td>
+                            <td><span th:text="${q.secret ? '비밀글' : '일반글'}"></span></td>
+                            <td class="option" th:data-qna-id="${q.id}" th:data-account-id="${a.id}">
+                                <th:block th:if="${q.qnaReply != null}">
+                                    <div>답변됨</div>
+                                    <div class="admin-btn-group">
+                                        <button type="button" class="admin-update-btn" data-bs-toggle="modal" data-bs-target="#qnaReplyModal">답변수정</button>
+                                        <button type="button" class="admin-delete-btn">답변삭제</button>
+                                    </div>
+                                </th:block>
+                                <th:block th:if="${q.qnaReply == null}">
+                                    <div>답변없음</div>
+                                    <div class="admin-btn-group">
+                                        <button type="button" class="admin-registration-btn" data-bs-toggle="modal" data-bs-target="#qnaReplyModal">답변하기</button>
+                                    </div>
+                                </th:block>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div id="qnaReplyModal" class="modal fade" tabindex="-1" aria-hidden="true">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-body">
+                            <div class="form-group">
+                                <textarea id="qnaReplyContent" class="form-control" maxlength="255"></textarea>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button id="qnaReplyModalNoBtn" type="button" class="btn btn-secondary" data-bs-dismiss="modal">닫기</button>
+                            <form id="qnaReplyModalForm" method="post" th:action="@{''}">
+                                <button type="submit" class="btn btn-primary">답변하기</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div th:replace="fragments.html :: pagination(page = ${qnaPage}, url = '/admin/management/qna', querystring = |email=${email}&productName=${productName}&type=${type}&exceptReplied=${exceptReplied}|)"></div>
+        </div>
+    </div>
+</div>
+
+<div th:include="fragments.html :: admin-common-js-func" th:remove="tag"></div>
+<div th:replace="fragments.html :: price-with-comma"></div>
+<div th:include="fragments.html :: date-format" th:remove="tag"></div>
+<div th:replace="fragments.html :: ajax-csrf-header"></div>
+<div th:replace="fragments.html :: ajax-feedback-message"></div>
+<script type="application/javascript" th:inline="javascript">
+    $(function () {
+        const $email = $("#email");
+        const $productName = $("#productName");
+        const $typeArray = $("#type > li > .form-check > input[type=checkbox].form-check-input");
+        const $exceptReplied = $("#exceptReplied");
+
+        const $searchBtn = $("button#search");
+        const $resetBtn = $("button#searchReset");
+
+        const $registrationBtn = $("button.admin-registration-btn");
+        const $updateBtn = $("button.admin-update-btn");
+        const $deleteBtn = $("button.admin-delete-btn");
+
+        const $qnaReplyModal = $("#qnaReplyModal");
+        const $qnaReplyContent = $("#qnaReplyContent");
+        const $qnaReplyModalNoBtn = $("#qnaReplyModalNoBtn");
+        const $qnaReplyModalForm = $("#qnaReplyModalForm");
+
+        let qnaReply = null;
+        let qnaId = null;
+        let accountId = null;
+
+        /*<![CDATA[*/
+
+        const replyList = {};
+        /*[# th:each="q : ${qnaPage.getContent()}"]*/
+        replyList["[[${q.id}]]"] = {
+            content: /*[[${q.qnaReply} == null ? '' : ${q.qnaReply.content}]]*/
+        };
+        /*[/]*/
+
+        /*]]>*/
+
+        // Q&A 검색
+        $searchBtn.click(function (e) {
+            location.href = getQnaUrl()
+        });
+
+        // 검색 옵션 초기화
+        $resetBtn.click(function (e) {
+            $email.val('');
+            $productName.val('');
+            $typeArray.prop('checked', false);
+            $exceptReplied.prop('checked', false);
+        });
+
+        $registrationBtn.click(function (e) {
+            $qnaReplyModalForm.removeClass('edit-modal');
+            qnaReply = e.currentTarget.closest("td.option");
+            qnaId = qnaReply.dataset.qnaId;
+            accountId = qnaReply.dataset.accountId;
+            $qnaReplyContent.text('');
+        });
+
+        $updateBtn.click(function (e) {
+            $qnaReplyModalForm.addClass('edit-modal');
+            qnaReply = e.currentTarget.closest("td.option");
+            qnaId = qnaReply.dataset.qnaId;
+            accountId = qnaReply.dataset.accountId;
+            $qnaReplyContent.text(replyList[qnaId].content);
+        });
+
+        $qnaReplyModalNoBtn.click(function (e) {
+            qnaReply = qnaId = accountId = null;
+        });
+
+        $qnaReplyModal.on('hide.bs.modal', function () {
+            qnaReply = qnaId = accountId = null;
+        });
+
+        // Q&A 답변 처리
+        $qnaReplyModalForm.submit(function (e) {
+            e.preventDefault();
+            e.stopPropagation();
+
+            const edit = $qnaReplyModalForm.hasClass("edit-modal");
+            const content = $qnaReplyContent.val();
+
+            if (content === "") {
+                alert("답변내용을 입력해주세요.");
+                return;
+            }
+
+            if (edit) {
+                $.ajax({
+                    contentType: "application/json; charset=utf-8",
+                    method: "POST",
+                    url: "/admin/qna/reply/update",
+                    data: JSON.stringify({
+                        qnaId,
+                        accountId,
+                        content
+                    })
+                }).done(function (data, status) {
+                    $qnaReplyModal.modal('hide');
+                    alert("Q&A 답변을 수정했습니다.");
+                }).fail(function (jqXHR, textStatus, errorThrown) {
+                    setFeedback(jqXHR);
+                });
+            } else {
+                $.ajax({
+                    contentType: "application/json; charset=utf-8",
+                    method: "POST",
+                    url: "/admin/qna/reply",
+                    data: JSON.stringify({
+                        qnaId,
+                        accountId,
+                        content
+                    })
+                }).done(function (data, status) {
+                    $qnaReplyModal.modal('hide');
+                    alert("Q&A 답변을 달았습니다.");
+                    location.href = getQnaUrl();
+                }).fail(function (jqXHR, textStatus, errorThrown) {
+                    setFeedback(jqXHR);
+                });
+            }
+        });
+
+        // qna 답변 삭제 처리
+        $deleteBtn.click(function (e) {
+            if (confirm("답변을 삭제하시겠습니까?")) {
+                const qnaReplyToDelete = e.currentTarget.closest("td.option");
+                const qnaId = qnaReplyToDelete.dataset.qnaId;
+                const accountId = qnaReplyToDelete.dataset.accountId;
+
+                $.ajax({
+                    contentType: "application/json; charset=utf-8",
+                    method: "POST",
+                    url: "/admin/qna/reply/delete",
+                    data: JSON.stringify({
+                        qnaId,
+                        accountId
+                    })
+                }).done(function (data, status) {
+                    alert("Q&A 답변을 삭제했습니다.");
+                    location.href = getQnaUrl();
+                }).fail(function (jqXHR, textStatus, errorThrown) {
+                    setFeedback(jqXHR);
+                });
+            }
+        });
+
+        function getQnaUrl() {
+            let url = '/admin/management/qna?'
+                + 'email=' + $email.val()
+                + '&productName=' + $productName.val()
+                + '&type=';
+
+            $typeArray.filter(":checked").each(function (idx, el) {
+                if (idx === 0) url += el.value;
+                else url += ',' + el.value;
+            });
+            url += `&exceptReplied=${$exceptReplied.prop('checked')}`;
+            return url;
+        }
+    });
+</script>
+
+</body>
+</html>

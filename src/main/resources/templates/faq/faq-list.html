@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <div th:include="fragments.html :: head" th:remove="tag"></div>
+    <link rel="stylesheet" href="/css/help.css">
+</head>
+<body>
+
+<div th:replace="fragments.html :: main-nav"></div>
+<div class="help-page">
+    <div th:replace="fragments.html :: help-nav(currentMenu = 'faq')"></div>
+    <div class="help-page-contents">
+        <div class="paragraph-title">
+            <h2>자주 묻는 질문들(FAQ)</h2>
+        </div>
+        <div class="help-page-content-wrapper">
+            <div th:replace="fragments.html :: help-search(action = '/faq-list')"></div>
+            <nav class="faq-tab navbar navbar-light justify-content-between navbar-expand">
+                <ul class="navbar-nav">
+                    <li class="nav-item"><a th:href="@{'/faq-list'}" class="nav-link" th:classappend="${type == null}?active">전체</a></li>
+                    <li th:each="f : ${T(com.nidas.modules.faq.FaqType).values()}" class="nav-item">
+                        <a th:href="@{'/faq-list?type=' + ${f}}" class="nav-link"
+                           th:classappend="${type == f}?active" th:text="${f.getName()}"></a>
+                    </li>
+                </ul>
+            </nav>
+            <table class="table help-page-table">
+                <thead class="thead-dark">
+                    <tr>
+                        <th scope="col" class="th-left">#</th>
+                        <th scope="col" class="th-middle">제목</th>
+                        <th scope="col" class="th-right">분류</th>
+                    </tr>
+                </thead>
+                <tbody th:with="offset=${faqPage.getNumber() * faqPage.getSize()},
+                                faqList = ${faqPage.getContent()}">
+                    <tr th:each="f : ${faqList}">
+                        <td class="td-left" scope="row"><span th:text="${offset + fStat.count}"></span></td>
+                        <td class="td-middle">
+                            <div class="title" th:text="${f.title}"></div>
+                            <div class="content" th:utext="${f.content}"></div>
+                        </td>
+                        <td class="td-right"><span th:text="${f.type.getName()}"></span></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<div th:replace="fragments.html :: main-footer"></div>
+<div th:include="fragments.html :: common-js-func" th:remove="tag"></div>
+<script type="application/javascript">
+    $(function () {
+        const $faqListItems = $("table.help-page-table > tbody > tr");
+        const $faqContents = $faqListItems.find("td.td-middle > .content");
+
+        // FAQ 내용 보기
+        $faqListItems.css('cursor', 'pointer');
+        $faqListItems.click(function (e) {
+            const $currentFaq = $(e.currentTarget);
+            const $currentFaqContent = $currentFaq.find("td.td-middle > .content");
+
+            $faqListItems.not($currentFaq).removeClass('opened');
+            $currentFaq.toggleClass('opened');
+            $faqContents.not($currentFaqContent).hide();
+            $currentFaqContent.toggle();
+        });
+    });
+</script>
+
+</body>
+</html>

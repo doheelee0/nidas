@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <div th:include="fragments.html :: head" th:remove="tag"></div>
+    <link rel="stylesheet" href="/css/mypage.css">
+</head>
+<body>
+
+<div th:replace="fragments.html :: main-nav"></div>
+<div class="mypage">
+    <div th:replace="fragments.html :: mypage-nav"></div>
+    <div class="mypage-contents">
+        <div class="paragraph-title">
+            <h2>Q&A 목록</h2>
+        </div>
+        <div class="mypage-content-wrapper">
+            <div class="container-fluid qna-list-container">
+                <div th:if="${qnaList.isEmpty()}" class="none-item">작성한 Q&A가 없습니다.</div>
+                <th:block th:if="${!qnaList.isEmpty()}">
+                    <div class="mypage-content-title">작성한 Q&A 목록</div>
+                    <ul class="mypage-list">
+                        <li th:each="q : ${qnaList}" class="mypage-item-container"
+                            th:with="p=${q.product},
+                                 qr=${q.qnaReply}" th:data-qna-id="${q.id}">
+                            <div class="mypage-item">
+                                <div class="mypage-item-info">
+                                    <div th:replace="fragments.html :: thumbnail-container(thumbnail = ${p.thumbnail})"></div>
+                                    <div class="info-wrapper">
+                                        <div class="info-title">
+                                            <div th:text="${p.name}"></div>
+                                        </div>
+                                        <div class="info">
+                                            <div class="text-end">
+                                                <div th:text="${q.type.getName()}"></div>
+                                                <i th:if="${q.secret}" class="fa fa-lock" aria-hidden="true"></i>
+                                                <span class="date" th:text="${q.createdDateTime}"></span>
+                                            </div>
+                                            <div class="message" th:text="${q.content}"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="mypage-item-extra-info">
+                                    <div th:text="${qr != null ? '답변됨' : '미답변'}"></div>
+                                    <a th:href="@{'/product/' + ${p.id}}" class="mypage-btn">상품상세</a>
+                                    <button class="mypage-btn qna-delete-btn" data-bs-toggle="modal" data-bs-target="#qnaDeleteModal">삭제하기</button>
+                                </div>
+                            </div>
+                            <div th:if="${qr != null}" class="qna-reply">
+                                <div class="title">답변.</div>
+                                <div th:utext="${qr.content}" style="white-space: pre;"></div>
+                            </div>
+                        </li>
+                    </ul>
+                    <div id="qnaDeleteModal" class="modal fade" tabindex="-1" aria-hidden="true">
+                        <div class="modal-dialog">
+                            <div class="modal-content">
+                                <div class="modal-body">
+                                    해당 Q&A를 삭제하시겠습니까?<br />
+                                </div>
+                                <div class="modal-footer">
+                                    <button id="qnaDeleteModalNoBtn" type="button" class="btn btn-secondary" data-bs-dismiss="modal">아니오</button>
+                                    <form id="qnaDeleteModalForm" method="post" th:action="@{''}">
+                                        <button type="submit" class="btn btn-danger">네</button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </th:block>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div th:replace="fragments.html :: main-footer"></div>
+<div th:include="fragments.html :: common-js-func" th:remove="tag"></div>
+<div th:include="fragments.html :: date-format" th:remove="tag"></div>
+<div th:replace="fragments.html :: ajax-csrf-header"></div>
+<div th:replace="fragments.html :: ajax-feedback-message"></div>
+<script type="application/javascript" th:inline="javascript">
+    $(function () {
+        const $qnaListContainer = $(".qna-list-container");
+        const $qnaListItems = $("ul.mypage-list > li.mypage-item-container");
+        const $qnaReplies = $qnaListItems.find(".qna-reply");
+        const $qnaDeleteBtn = $("button.qna-delete-btn");
+        const $qnaDeleteModal = $("#qnaDeleteModal");
+        const $qnaDeleteModalNoBtn = $("#qnaDeleteModalNoBtn");
+        const $qnaDeleteModalForm = $("#qnaDeleteModalForm");
+
+        let qnaId = null;
+        let qnaToDelete = null;
+
+        /*<![CDATA[*/
+
+        let qnaCount = /*[[${qnaList.size()}]]*/;
+
+        /*]]>*/
+
+        // qna 답변 보기
+        $qnaListItems.css('cursor', 'pointer');
+        $qnaListItems.click(function (e) {
+            const $currentQna = $(e.currentTarget).closest("li.mypage-item-container");
+            const $currentQnaReply = $currentQna.find(".qna-reply");
+
+            $qnaListItems.not($currentQna).removeClass('opened');
+            $currentQna.toggleClass('opened');
+            $qnaReplies.not($currentQnaReply).hide();
+            $currentQnaReply.toggle();
+        });
+
+        // qna 삭제 처리
+        $qnaDeleteBtn.click(function (e) {
+            qnaToDelete = e.currentTarget.closest("li.mypage-item-container");
+            qnaId = qnaToDelete.dataset.qnaId;
+        });
+
+        $qnaDeleteModalNoBtn.click(function (e) {
+            qnaId = qnaToDelete = null;
+        });
+
+        $qnaDeleteModal.on('hide.bs.modal', function () {
+            qnaId = qnaToDelete = null;
+        });
+
+        $qnaDeleteModalForm.submit(function (e) {
+            e.preventDefault();
+            e.stopPropagation();
+
+            $.ajax({
+                method: "POST",
+                url: "/qna/" + qnaId + "/delete"
+            }).done(function (data, status) {
+                qnaCount--;
+                if (qnaCount > 0) {
+                    qnaToDelete.remove();
+                } else {
+                    const $noneItem = $(`<div class="none-item">작성한 Q&A가 없습니다.</div>`);
+                    $qnaListContainer.html($noneItem);
+                }
+                $qnaDeleteModal.modal('hide');
+                alert("Q&A가 삭제처리되었습니다.");
+            }).fail(function (jqXHR, textStatus, errorThrown) {
+                setFeedback(jqXHR);
+            });
+        });
+    });
+</script>
+
+</body>
+</html>

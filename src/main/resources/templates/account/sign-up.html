@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+
+<div th:replace="fragments.html :: head"></div>
+<body>
+
+<div th:replace="fragments.html :: main-nav"></div>
+<div class="container">
+    <div class="form-content">
+        <div class="paragraph-title">
+            <h2>회원가입</h2>
+        </div>
+        <form th:object="${signUpForm}" th:action="@{/sign-up}" method="post" id="signUpForm" novalidate>
+            <div class="form-group">
+                <label for="email">이메일</label>
+                <input th:field="*{email}" id="email" type="email" class="form-control" maxlength="100" placeholder="이메일을 입력해 주세요."
+                       th:classappend="${#fields.hasErrors('email')}?'is-invalid'" autocomplete="off" aria-describedby="emailHelp" />
+                <small id="emailHelp" class="form-text text-muted">
+                    본 사이트는 사용자의 이메일을 공개하지 않습니다.
+                </small>
+                <small th:if="${#fields.hasErrors('email')}" class="invalid-feedback" th:errors="*{email}"></small>
+                <small th:if="${!#fields.hasErrors('email')}" class="invalid-feedback"></small>
+            </div>
+            <div class="form-group">
+                <label for="password1">비밀번호</label>
+                <input th:field="*{password1}" id="password1" type="password" class="form-control" maxlength="20" placeholder="비밀번호를 입력해 주세요."
+                       th:classappend="${#fields.hasErrors('password1')}?'is-invalid'" autocomplete="off" aria-describedby="passwordHelp" />
+                <small id="passwordHelp" class="form-text text-muted">
+                    영문자, 숫자, 특수기호를 포함하여 공백없이 8자이상 입력해야 합니다.
+                </small>
+                <small th:if="${#fields.hasErrors('password1')}" class="invalid-feedback" th:errors="*{password1}"></small>
+                <small th:if="${!#fields.hasErrors('password1')}" class="invalid-feedback"></small>
+            </div>
+            <div class="form-group">
+                <label for="password2">비밀번호 확인</label>
+                <input th:field="*{password2}" id="password2" type="password" class="form-control" maxlength="20" placeholder="비밀번호를 한번 더 입력해 주세요."
+                       th:classappend="${#fields.hasErrors('password2')}?'is-invalid'" autocomplete="off" />
+                <small th:if="${#fields.hasErrors('password2')}" class="invalid-feedback" th:errors="*{password2}"></small>
+                <small th:if="${!#fields.hasErrors('password2')}" class="invalid-feedback"></small>
+            </div>
+            <div class="form-group">
+                <label for="name">이름</label>
+                <input th:field="*{name}" id="name" type="text" class="form-control" maxlength="50" placeholder="이름을 입력해 주세요."
+                       th:classappend="${#fields.hasErrors('name')}?'is-invalid'" autocomplete="off" />
+                <small th:if="${#fields.hasErrors('name')}" class="invalid-feedback" th:errors="*{name}"></small>
+                <small th:if="${!#fields.hasErrors('name')}" class="invalid-feedback"></small>
+            </div>
+            <div class="form-group">
+                <label for="gender">성별</label>
+                <select th:field="*{gender}" id="gender" class="form-select" th:classappend="${#fields.hasErrors('gender')}?'is-invalid'">
+                    <option value="" selected>성별</option>
+                    <option th:each="g : ${T(com.nidas.modules.account.Gender).values()}" th:value="${g}" th:text="${g.getName()}"></option>
+                </select>
+                <small th:if="${#fields.hasErrors('gender')}" class="invalid-feedback" th:errors="*{gender}"></small>
+                <small th:if="${!#fields.hasErrors('gender')}" class="invalid-feedback"></small>
+            </div>
+            <div class="form-group">
+                <label for="birthday">생일</label>
+                <input th:field="*{birthday}" id="birthday" type="date" class="form-control"
+                       th:classappend="${#fields.hasErrors('birthday')}?'is-invalid'" />
+                <small th:if="${#fields.hasErrors('birthday')}" class="invalid-feedback" th:errors="*{birthday}"></small>
+                <small th:if="${!#fields.hasErrors('birthday')}" class="invalid-feedback"></small>
+            </div>
+            <div class="form-group">
+                <label for="phoneNumber">휴대폰번호</label>
+                <input th:field="*{phoneNumber}" id="phoneNumber" type="text" pattern="\d*" class="form-control" maxlength="11" placeholder="전화번호를 (-)없이 입력해주세요."
+                       th:classappend="${#fields.hasErrors('phoneNumber')}?'is-invalid'" autocomplete="off" />
+                <small th:if="${#fields.hasErrors('phoneNumber')}" class="invalid-feedback" th:errors="*{phoneNumber}"></small>
+                <small th:if="${!#fields.hasErrors('phoneNumber')}" class="invalid-feedback"></small>
+            </div>
+            <div class="form-group">
+                <button type="submit" class="btn btn-primary d-block w-100 mb-2" aria-describedby="submitHelp">가입하기</button>
+                <small id="submitHelp" class="form-text text-muted">
+                    <a href="#">약관</a>에 동의하시면 가입하기 버튼을 클릭하세요.
+                </small>
+            </div>
+        </form>
+    </div>
+</div>
+<div th:replace="fragments.html :: main-footer"></div>
+<div th:include="fragments.html :: common-js-func" th:remove="tag"></div>
+<div th:replace="fragments.html :: validate-user-info"></div>
+<script type="application/javascript">
+    $(function () {
+        const $email = $("#email");
+        const $password1 = $("#password1");
+        const $password2 = $("#password2");
+        const $name = $("#name");
+        const $gender = $("#gender");
+        const $birthday = $("#birthday");
+        const $phoneNumber = $("#phoneNumber");
+
+        const $emailFeedback = $email.siblings(".invalid-feedback");
+        const $password1Feedback = $password1.siblings(".invalid-feedback");
+        const $password2Feedback = $password2.siblings(".invalid-feedback");
+        const $nameFeedback = $name.siblings(".invalid-feedback");
+        const $genderFeedback = $gender.siblings(".invalid-feedback");
+        const $birthdayFeedback = $birthday.siblings(".invalid-feedback");
+        const $phoneNumberFeedback = $phoneNumber.siblings(".invalid-feedback");
+
+        const $signUpForm = $("#signUpForm");
+
+        $email.keyup(e => setNormalStatus($email, $emailFeedback));
+        $email.focusout(function (e) {
+            if ($email.val() === "") setInvalidStatus($email, $emailFeedback, "이메일을 입력해주세요.");
+            else if (!validateEmail($email.val())) setInvalidStatus($email, $emailFeedback, "이메일 형식이어야 합니다.");
+            else setValidStatus($email, $emailFeedback);
+        });
+
+        $password1.keyup(e => setNormalStatus($password1, $password1Feedback));
+        $password1.focusout(function (e) {
+            if ($password1.val() === "") setInvalidStatus($password1, $password1Feedback, "비밀번호를 입력해주세요.");
+            else if (!validatePassword($password1.val())) setInvalidStatus($password1, $password1Feedback, "영문자, 숫자, 특수문자를 반드시 포함하여 공백없이 8자 이상 입력해 주세요.");
+            else setValidStatus($password1, $password1Feedback);
+        });
+
+        $password2.keyup(function (e) {
+            if ($password1.val() !== $password2.val()) setInvalidStatus($password2, $password2Feedback, "비밀번호가 일치하지 않습니다.");
+            else setValidStatus($password2, $password2Feedback);
+        });
+
+        $name.keyup(e => setNormalStatus($name, $nameFeedback));
+        $name.focusout(function (e) {
+            if ($name.val() === "") setInvalidStatus($name, $nameFeedback, "이름을 입력해주세요.");
+            else if(!validateName($name.val())) setInvalidStatus($name, $nameFeedback, "영문자, 한글로 입력해주세요.");
+            else setValidStatus($name, $nameFeedback);
+        });
+
+        $gender.keyup(e => setNormalStatus($gender, $genderFeedback));
+        $gender.focusout(function (e) {
+            if ($gender.val() === "") setInvalidStatus($gender, $genderFeedback, "성별을 선택해주세요.");
+            else setValidStatus($gender, $genderFeedback);
+        });
+
+        $birthday.keyup(e => setNormalStatus($birthday, $birthdayFeedback));
+        $birthday.focusout(function (e) {
+            if ($birthday.val() === "") setInvalidStatus($birthday, $birthdayFeedback, "생년월일을 선택해주세요.");
+            else if (!validateBirthday($birthday.val())) setInvalidStatus($birthday, $birthdayFeedback, "올바른 생년월일 값을 선택해주세요.");
+            else if (!validateIfBeforeNow($birthday.val())) setInvalidStatus($birthday, $birthdayFeedback, "과거의 값이어야 합니다.");
+            else setValidStatus($birthday, $birthdayFeedback);
+        });
+
+        $phoneNumber.keyup(e => setNormalStatus($phoneNumber, $phoneNumberFeedback));
+        $phoneNumber.focusout(function (e) {
+            if ($phoneNumber.val() === "") setInvalidStatus($phoneNumber, $phoneNumberFeedback, "휴대폰번호를 입력해주세요.");
+            else if (!validatePhoneNumber($phoneNumber.val())) setInvalidStatus($phoneNumber, $phoneNumberFeedback, "(-) 없이 휴대폰번호 10자리 또는 11자리를 입력해주세요.");
+            else setValidStatus($phoneNumber, $phoneNumberFeedback);
+        });
+
+        $signUpForm.submit(function (e) {
+            let formValid = true;
+
+            if ($email.val() === "") {
+                setInvalidStatus($email, $emailFeedback, "이메일을 입력해주세요.");
+                formValid = false;
+            } else if (!validateEmail($email.val())) {
+                setInvalidStatus($email, $emailFeedback, "이메일 형식이어야 합니다.");
+                formValid = false;
+            } else setValidStatus($email, $emailFeedback);
+
+            if ($password1.val() === "") {
+                setInvalidStatus($password1, $password1Feedback, "비밀번호를 입력해주세요.");
+                formValid = false;
+            } else if (!validatePassword($password1.val())) {
+                setInvalidStatus($password1, $password1Feedback, "영문자, 숫자, 특수문자를 반드시 포함하여 공백없이 8자 이상 입력해 주세요.");
+                formValid = false;
+            } else setValidStatus($password1, $password1Feedback);
+
+            if ($password1.val() !== $password2.val()) {
+                setInvalidStatus($password2, $password2Feedback, "비밀번호가 일치하지 않습니다.");
+                formValid = false;
+            } else setValidStatus($password2, $password2Feedback);
+
+            if ($name.val() === "") {
+                setInvalidStatus($name, $nameFeedback, "이름을 입력해주세요.");
+                formValid = false;
+            } else if(!validateName($name.val())) {
+                setInvalidStatus($name, $nameFeedback, "영문자, 한글로 입력해주세요.");
+                formValid = false;
+            } else setValidStatus($name, $nameFeedback);
+
+
+            if ($gender.val() === "") {
+                setInvalidStatus($gender, $genderFeedback, "성별을 선택해주세요.");
+                formValid = false;
+            } else setValidStatus($gender, $genderFeedback);
+
+            if ($birthday.val() === "") {
+                setInvalidStatus($birthday, $birthdayFeedback, "생년월일을 선택해주세요.");
+                formValid = false;
+            } else if (!validateBirthday($birthday.val())) {
+                setInvalidStatus($birthday, $birthdayFeedback, "올바른 생년월일 값을 선택해주세요.");
+                formValid = false;
+            } else if (!validateIfBeforeNow($birthday.val())) {
+                setInvalidStatus($birthday, $birthdayFeedback, "과거의 값이어야 합니다.");
+                formValid = false;
+            } else setValidStatus($birthday, $birthdayFeedback);
+
+            if ($phoneNumber.val() === "") {
+                setInvalidStatus($phoneNumber, $phoneNumberFeedback, "휴대폰번호를 입력해주세요.");
+                formValid = false;
+            } else if (!validatePhoneNumber($phoneNumber.val())) {
+                setInvalidStatus($phoneNumber, $phoneNumberFeedback, "(-) 없이 휴대폰번호 10자리 또는 11자리를 입력해주세요.");
+                formValid = false;
+            } else setValidStatus($phoneNumber, $phoneNumberFeedback);
+
+            if (!formValid) {
+                e.preventDefault();
+                e.stopPropagation();
+            }
+        });
+
+        function setInvalidStatus($el, $feedback, message) {
+            $el.removeClass("is-valid").addClass("is-invalid");
+            $feedback.text(message);
+        }
+
+        function setValidStatus($el, $feedback) {
+            $el.removeClass("is-invalid").addClass("is-valid");
+            $feedback.text("");
+        }
+
+        function setNormalStatus($el, $feedback) {
+            $el.removeClass("is-invalid");
+            $feedback.text("");
+        }
+    });
+</script>
+
+</body>
+</html>

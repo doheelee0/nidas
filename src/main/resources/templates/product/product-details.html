@@ -1,0 +1,920 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <div th:include="fragments.html :: head" th:remove="tag"></div>
+    <link rel="stylesheet" href="/css/product-details.css">
+</head>
+<body>
+
+<div th:replace="fragments.html :: main-nav"></div>
+<div class="container">
+    <div class="product-details-top">
+        <div class="product-details-image-view">
+            <div class="carousel slide product-details-image-slider" data-bs-ride="carousel" data-bs-interval="false">
+                <div class="carousel-indicators">
+                    <button th:each="pi : ${product.getImages()}" type="button" data-bs-target=".product-details-image-slider"
+                            th:data-bs-slide-to="${piStat.index}" th:classappend="${piStat.index == 0 ? 'active' : ''}"
+                            th:aria-current="${piStat.index == 0 ? 'true' : 'false'}" th:aria-label="${'Slide' + piStat.count}"></button>
+                </div>
+                <div class="carousel-inner">
+                    <div th:each="pi : ${product.getImages()}" class="carousel-item" th:classappend="${piStat.index == 0 ? 'active' : ''}">
+                        <img th:src="${pi.image}" class="product-details-image" alt="&times;">
+                    </div>
+                </div>
+                <button class="carousel-control-prev" type="button" data-bs-target=".product-details-image-slider" data-bs-slide="prev">
+                    <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                    <span class="visually-hidden">Previous</span>
+                </button>
+                <button class="carousel-control-next" type="button" data-bs-target=".product-details-image-slider" data-bs-slide="next">
+                    <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                    <span class="visually-hidden">Next</span>
+                </button>
+            </div>
+        </div>
+        <div class="product-details-info-view">
+            <div class="product-details-info">
+                <div class="product-details-title">
+                    <div><span th:text="${product.name}"></span></div>
+                    <div class="product-details-heart-container">
+                        <button type="button" id="favoritesBtn" class="heart">
+                            <i class="fa fa-heart-o" aria-hidden="true"></i>
+                        </button>
+                        <span id="favoritesCount" th:text="${product.favoritesCount}"></span>
+                    </div>
+                </div>
+                <div class="product-details-price">
+                    <div th:replace="fragments.html :: price-container(product = ${product})"></div>
+                </div>
+                <div class="product-details-delivery">
+                    <div>배송정보</div>
+                    <ul class="product-details-delivery-list">
+                        <li>
+                            <div class="info-text">배송비</div>
+                            <div class="info-description">기본적으로 택배비 3,000원이 추가됩니다. 50,000원 이상인 경우 무료로 배송됩니다.</div>
+                        </li>
+                        <li>
+                            <div class="info-text">배송예정일</div>
+                            <div class="info-description">
+                                <span th:with="date = ${T(java.time.LocalDateTime).now().plusDays(3)}"
+                                      th:text="${#temporals.format(date, 'MM월 dd일')}"></span>까지 도착 예정</div>
+                        </li>
+                    </ul>
+                </div>
+                <div class="product-details-option-wrapper">
+                    <div class="product-details-option">
+                        <div class="option-box">
+                            <select id="detailsColorOption">
+                                <option value="" selected>컬러</option>
+                            </select>
+                        </div>
+                        <div class="option-box">
+                            <select id="detailsSizeOption">
+                                <option value="" selected>사이즈</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div id="resultBox"></div>
+                    <div class="option-btn-group">
+                        <button id="detailsCartBtn" type="button" class="btn btn-outline-dark">장바구니 담기</button>
+                        <button id="detailsBuyBtn" type="button" class="btn btn-dark">바로 구매하기</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="product-details-contents">
+        <div class="product-details-category">
+            <h5>상품 카테고리</h5>
+            <small class="text-muted"><span th:text="${product.mainCategory}"></span> / <span th:text="${product.subCategory.getName()}"></span></small>
+        </div>
+        <div class="product-details-description">
+            <h5>상품 설명</h5>
+            <div th:utext="${product.description}"></div>
+        </div>
+        <div class="product-details-summary">
+            <h5>상품정보 보기</h5>
+            <table class="table">
+                <tbody>
+                    <tr>
+                        <th scope="row"><div>제품 소재</div></th>
+                        <td><span th:text="${product.material}"></span></td>
+                    </tr>
+                    <tr>
+                        <th scope="row"><div>색상</div></th>
+                        <td><span id="productDetailsColor"></span></td>
+                    </tr>
+                    <tr>
+                        <th scope="row"><div>치수</div></th>
+                        <td><span id="productDetailsSize"></span></td>
+                    </tr>
+                    <tr>
+                        <th scope="row"><div>제조국</div></th>
+                        <td><span th:text="${product.madeIn}"></span></td>
+                    </tr>
+                    <tr>
+                        <th scope="row"><div>세탁법</div></th>
+                        <td><span th:text="${product.washing}"></span></td>
+                    </tr>
+                    <tr>
+                        <th scope="row"><div>품질보증기준</div></th>
+                        <td><span>상품 불량 시 수령 후 1주일 이내 무상 교환 및 환불(소비자에 책임이 있는 경우 책임을 지지 않습니다.)</span></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <div class="product-details-review">
+        <div class="review-top">
+            <h5 class="review-info">
+                리뷰 (<span id="reviewTotalCount"></span>)
+                <div class="product-review-star-container">
+                    <i class="fa" th:classappend="${product.rank >= 1} ? 'fa-star' : (${product.rank >= 0.5} ? 'fa-star-half-o' : 'fa-star-o')"></i>
+                    <i class="fa" th:classappend="${product.rank >= 2} ? 'fa-star' : (${product.rank >= 1.5} ? 'fa-star-half-o' : 'fa-star-o')"></i>
+                    <i class="fa" th:classappend="${product.rank >= 3} ? 'fa-star' : (${product.rank >= 2.5} ? 'fa-star-half-o' : 'fa-star-o')"></i>
+                    <i class="fa" th:classappend="${product.rank >= 4} ? 'fa-star' : (${product.rank >= 3.5} ? 'fa-star-half-o' : 'fa-star-o')"></i>
+                    <i class="fa" th:classappend="${product.rank >= 5} ? 'fa-star' : (${product.rank >= 4.5} ? 'fa-star-half-o' : 'fa-star-o')"></i>
+                </div>
+            </h5>
+        </div>
+        <div class="review-image-slider-wrapper"></div>
+        <div id="reviewDetailsModal" class="modal fade" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <button type="button" class="btn-close" aria-label="Close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="review-details-container">
+                            <div class="image-container">
+                                <img id="reviewDetailsImage" class="image" alt="&times;" />
+                            </div>
+                            <div class="review-info">
+                                <div class="extra-info">
+                                    <div id="reviewDetailsRank">
+                                        <i class="fa fa-star-o"></i>
+                                        <i class="fa fa-star-o"></i>
+                                        <i class="fa fa-star-o"></i>
+                                        <i class="fa fa-star-o"></i>
+                                        <i class="fa fa-star-o"></i>
+                                    </div>
+                                    <span id="reviewDetailsEmail" style="padding-left: 15px;"></span>
+                                    <span id="reviewDetailsDate" class="text-muted ms-auto"></span>
+                                </div>
+                                <div class="product-info text-muted">
+                                    [<span id="reviewDetailsColor"></span>]
+                                    [<span id="reviewDetailsSize"></span>mm] 구매
+                                </div>
+                                <div class="content">
+                                    <span id="reviewDetailsContent"></span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <ul class="review-list"></ul>
+        <div class="pagination-wrapper"></div>
+    </div>
+    <div class="product-details-qna">
+        <div class="qna-top">
+            <h5 class="qna-info">
+                상품 Q&A (<span id="qnaTotalCount"></span>)
+                <button type="button" id="qnaWriteBtn" class="btn btn-link float-end" style="padding: 6px 0 0 0;">Q&A쓰기</button>
+            </h5>
+        </div>
+        <form th:action="@{''}" method="post" id="qnaWriteForm" novalidate>
+            <div class="form-group">
+                <select class="form-select type">
+                    <option value="" selected>문의 종류</option>
+                    <option th:each="r : ${T(com.nidas.modules.qna.QnaType).values()}" th:value="${r}" th:text="${r.getName()}"></option>
+                </select>
+            </div>
+            <div class="form-group">
+                <textarea class="form-control content" placeholder="문의 내용을 입력해주세요." maxlength="255"></textarea>
+            </div>
+            <div class="form-group form-check">
+                <input type="checkbox" class="form-check-input secret" /> 비밀글 여부
+            </div>
+            <div class="form-group">
+                <small class="invalid-feedback"></small>
+            </div>
+            <div class="form-group">
+                <button type="submit" class="btn btn-primary">문의하기</button>
+                <button type="button" id="qnaWriteFormCloseBtn" class="btn btn-secondary">닫기</button>
+            </div>
+        </form>
+        <ul class="qna-list"></ul>
+        <div class="pagination-wrapper"></div>
+    </div>
+    <div class="product-details-policy">
+        <div class="policy-top">
+            <h5 class="policy-info">상품 정책</h5>
+        </div>
+        <ul class="policy-list">
+            <li>2시 이전에 결제 확인된 주문은 당일 출고되며 5만원 이상부터 무료배송, 5만원 미만은 3,000원의 배송비가 추가됩니다.</li>
+            <li>교환/환불은 수령일로부터 7일 이내에 가능하며 제품에 문제가 있다면 무상으로 처리되지만, 그렇지 않은 경우에는 소비자가 부담하게 됩니다.</li>
+            <li>환불이 끝나면 구매 후 적립된 마일리지와 리뷰 작성 후 받은 마일리지는 회수됩니다.</li>
+            <li>상품을 구매함에 따라 고객 등급이 올라가며 더 많은 혜택을 누릴 수 있습니다.</li>
+        </ul>
+    </div>
+</div>
+
+<div th:replace="fragments.html :: main-footer"></div>
+<div th:include="fragments.html :: common-js-func" th:remove="tag"></div>
+<div th:replace="fragments.html :: price-with-comma"></div>
+<div th:include="fragments.html :: date-format" th:remove="tag"></div>
+<div th:replace="fragments.html :: ajax-csrf-header"></div>
+<div th:replace="fragments.html :: ajax-feedback-message"></div>
+<script type="application/javascript" th:inline="javascript">
+    $(function () {
+        const $detailsColorOption = $("select#detailsColorOption");
+        const $detailsSizeOption = $("select#detailsSizeOption");
+        const $resultBox = $("#resultBox");
+        const $productDetailsColor = $("#productDetailsColor");
+        const $productDetailsSize = $("#productDetailsSize");
+        const $favoritesBtn = $("button#favoritesBtn");
+        const $favoritesCount = $("#favoritesCount");
+        const $detailsCartBtn = $("#detailsCartBtn");
+        const $detailsBuyBtn = $("#detailsBuyBtn");
+
+        const $reviewTotalCount = $("#reviewTotalCount");
+        const $reviewImageSliderWrapper = $(".product-details-review > .review-image-slider-wrapper");
+        const $reviewDetailsImage = $("#reviewDetailsImage");
+        const $reviewDetailsColor = $("#reviewDetailsColor");
+        const $reviewDetailsSize = $("#reviewDetailsSize");
+        const $reviewDetailsRank = $("#reviewDetailsRank > i.fa");
+        const $reviewDetailsEmail = $("#reviewDetailsEmail");
+        const $reviewDetailsDate = $("#reviewDetailsDate");
+        const $reviewDetailsContent = $("#reviewDetailsContent");
+        const $reviewList = $(".product-details-review > ul.review-list");
+        const $reviewListPagination = $(".product-details-review > .pagination-wrapper");
+
+        const $qnaTotalCount = $("#qnaTotalCount");
+        const $qnaWriteBtn = $("#qnaWriteBtn");
+        const $qnaWriteForm = $("#qnaWriteForm");
+        const $qnaWriteFormCloseBtn = $("#qnaWriteFormCloseBtn");
+        const $qnaList = $(".product-details-qna > ul.qna-list");
+        const $qnaListPagination = $(".product-details-qna > .pagination-wrapper");
+
+        let selectedDetailsList = [];
+        let resultTotalPrice = 0;
+
+        let imageReviewPage = -1;
+        let imageReviewHasNext = true;
+        const imageReviewList = {};
+
+        let favoritesAdded = false;
+
+        /*<![CDATA[*/
+
+        const authenticated = [[${authenticated}]];
+        const MIN_QUANTITY = [[${minQuantity}]];
+        const MAX_QUANTITY = [[${maxQuantity}]];
+        const productId = [[${product.id}]];
+        const productPrice = [[${product.getDiscountedPrice()}]];
+        const detailsList = {};
+        const colorSet = new Set();
+        const sizeSet = new Set();
+        /*[# th:each="pd : ${product.details}"]*/
+        addDetails(detailsList, /*[[${pd.color}]]*/, /*[[${pd.size.getValue()}]]*/, /*[[${pd.stock} > 0 ? false : true]]*/);
+        colorSet.add(/*[[${pd.color}]]*/);
+        sizeSet.add(/*[[${pd.size.getValue().toString()}]]*/);
+        /*[/]*/
+
+        function addDetails(detailsList, color, size, soldOut) {
+            if (!detailsList[color]) detailsList[color] = {};
+            detailsList[color][size] = soldOut;
+        }
+
+        let productFavoritesCount = [[${product.favoritesCount}]];
+
+        /*]]>*/
+
+        // 컬러 옵션 정보 로딩
+        Object.keys(detailsList).forEach(color => {
+            $detailsColorOption.append($(`<option value='${color}'>${color}</option>`));
+        });
+
+        // 컬러 선택시 사이즈 옵션 정보 로딩
+        $detailsColorOption.change(function (e) {
+            const color = e.currentTarget.value;
+            $detailsSizeOption.html(`<option value='' selected>사이즈</option>`);
+            Object.keys(detailsList[color]).forEach(size => {
+                const text = `${size}mm${detailsList[color][size] ? '(품절)' : ''}`;
+                $detailsSizeOption.append(`<option value='${size}'>${text}</option>`);
+            });
+        });
+
+        // 사이즈 선택시 결과창에 추가
+        $detailsSizeOption.change(function (e) {
+            const color = $detailsColorOption.val();
+            const size = $detailsSizeOption.val();
+
+            // 선택 후 옵션창 초기화
+            $detailsColorOption.val('');
+            $detailsSizeOption.val('');
+            $detailsSizeOption.html(`<option value='' selected>사이즈</option>`);
+
+            if (!colorSet.has(color) || !sizeSet.has(size)) {
+                alert("포함되지 않는 상품입니다.");
+                return;
+            }
+
+            if (detailsList[color][size]) {
+                alert("품절 상품입니다.");
+                return;
+            }
+
+            if (selectedDetailsList.some(v => v.color === color && v.size === size)) {
+                alert("이미 선택된 옵션입니다.");
+                return;
+            }
+
+            // 첫 상품 추가시 총 금액창 생성
+            if (selectedDetailsList.length === 0) {
+                $resultBox.html(`
+                    <div class="result-items"></div>
+                    <div class="result-total-price-wrapper">
+                        총 상품 금액
+                        <span class="result-total-price price-format"></span>원
+                    </div>
+                `);
+            }
+
+            // item 창 생성
+            const $resultItems = $resultBox.find(".result-items");
+            const $resultTotalPrice = $resultBox.find(".result-total-price-wrapper > .result-total-price");
+            const $resultItemWrapper = $("<div></div>").addClass("result-item-wrapper");
+            $resultItemWrapper.append(`
+                <div class="result-item">
+                    <span class="result-item-color">${color}</span> - <span class="result-item-size">${size}</span>
+                </div>
+                <div class="count-box">
+                    <button type="button" class="minus"><i class="fa fa-minus" aria-hidden="true"></i></button>
+                    <input type="number" class="count-box-input" value="1" />
+                    <button type="button" class="plus"><i class="fa fa-plus" aria-hidden="true"></i></button>
+                </div>
+                <div class="result-price-wrapper">
+                    <span class="result-price price-format"></span>원
+                    <button type="button" class="btn btn-cancel p-0">
+                        <i class="fa fa-times-circle" aria-hidden="true"></i>
+                    </button>
+                </div>
+            `);
+            $resultItems.append($resultItemWrapper);
+
+            const $plusBtn = $resultItemWrapper.find(".count-box > button.plus");
+            const $minusBtn = $resultItemWrapper.find(".count-box > button.minus");
+            const $countBoxInput = $resultItemWrapper.find(".count-box > input.count-box-input");
+            const $resultPrice = $resultItemWrapper.find(".result-price-wrapper > .result-price");
+            const $cancelBtn = $resultItemWrapper.find(".result-price-wrapper > button.btn-cancel");
+
+            // item 추가 처리
+            const item = { color, size, "quantity": 0 };
+            selectedDetailsList.push(item);
+            updateResultPriceView(item.quantity + 1);
+
+            // plus button event
+            $plusBtn.click(function (e) {
+                if ($countBoxInput.val() >= MAX_QUANTITY) {
+                    alert(`한번에 최대 ${MAX_QUANTITY}개까지 주문할 수 있습니다.`);
+                    return;
+                }
+                updateResultPriceView(item.quantity + 1);
+            });
+
+            // minus button event
+            $minusBtn.click(function (e) {
+                if ($countBoxInput.val() <= MIN_QUANTITY) {
+                    alert(`최소 ${MIN_QUANTITY}개는 주문해야 합니다.`);
+                    return;
+                }
+                updateResultPriceView(item.quantity - 1);
+            });
+
+            // input value change event
+            $countBoxInput.change(function (e) {
+                let quantity = parseInt($countBoxInput.val());
+                if (quantity < MIN_QUANTITY) {
+                    quantity = MIN_QUANTITY;
+                    alert(`최소 ${MIN_QUANTITY}개는 주문해야 합니다.`);
+                }
+                if (quantity > MAX_QUANTITY) {
+                    quantity = MAX_QUANTITY;
+                    alert(`한번에 최대 ${MAX_QUANTITY}개까지 주문할 수 있습니다.`);
+                }
+                updateResultPriceView(quantity);
+            });
+
+            // cancel item
+            $cancelBtn.click(function (e) {
+                selectedDetailsList = selectedDetailsList.filter(v => v.color !== color || v.size !== size);
+                resultTotalPrice -= (item.quantity * productPrice);
+
+                if (selectedDetailsList.length === 0) { // 남아있는 item이 없다면
+                    $resultBox.html('');
+                    return;
+                }
+
+                $cancelBtn.closest(".result-item-wrapper").remove();
+                $resultTotalPrice.text(resultTotalPrice);
+                formatPrice();
+            });
+
+            function updateResultPriceView(quantity) {
+                const diff = quantity - item.quantity;
+                item.quantity = quantity;
+                resultTotalPrice += (diff * productPrice);
+                $countBoxInput.val(quantity).text(quantity);
+                $resultPrice.text(quantity * productPrice);
+                $resultTotalPrice.text(resultTotalPrice);
+                formatPrice();
+            }
+        });
+
+        // 상품 정보 테이블 로딩
+        $productDetailsColor.text([...colorSet].join(' / '));
+        $productDetailsSize.text([...sizeSet].join(' / '));
+
+        // 즐겨찾기 체크 확인
+        if (authenticated) {
+            $.ajax({
+                method: "GET",
+                url: "/favorites/product/" + productId
+            }).done(function (data, status) {
+                if (data) {
+                    $favoritesBtn.find("i.fa").removeClass('fa-heart-o').addClass('fa-heart');
+                    favoritesAdded = true;
+                }
+            });
+        }
+
+        // 즐겨찾기 등록/삭제
+        $favoritesBtn.click(function (e) {
+            if (!authenticated) {
+                alert("로그인이 필요합니다.");
+                return;
+            }
+
+            if (favoritesAdded) {
+                $.ajax({
+                    method: "POST",
+                    url: "/favorites/product/" + productId + "/remove"
+                }).done(function (data, status) {
+                    favoritesAdded = false;
+                    $(e.currentTarget).find("i.fa").addClass('fa-heart-o').removeClass('fa-heart');
+                    $favoritesCount.text(--productFavoritesCount);
+                }).fail(function (jqXHR, textStatus, errorThrown) {
+                    setFeedback(jqXHR);
+                });
+            } else {
+                $.ajax({
+                    method: "POST",
+                    url: "/favorites/product/" + productId + "/add"
+                }).done(function (data, status) {
+                    favoritesAdded = true;
+                    $(e.currentTarget).find("i.fa").addClass('fa-heart').removeClass('fa-heart-o');
+                    $favoritesCount.text(++productFavoritesCount);
+                }).fail(function (jqXHR, textStatus, errorThrown) {
+                    setFeedback(jqXHR);
+                });
+            }
+        });
+
+        // 장바구니에 담기
+        $detailsCartBtn.click(function (e) {
+            if (selectedDetailsList.length === 0) {
+                alert("장바구니에 담을 물품을 선택해주세요.");
+                return;
+            }
+            $.ajax({
+                contentType: "application/json; charset=utf-8",
+                method: "POST",
+                url: "/cart/add/product/" + productId,
+                data: JSON.stringify({
+                    "itemList": selectedDetailsList,
+                    "orderCheck": false
+                })
+            }).done(function (data, status) {
+                selectedDetailsList = [];
+                resultTotalPrice = 0;
+                $resultBox.html('');
+                if (confirm("장바구니에 물품을 담았습니다. 장바구니를 확인하시겠습니까?")) {
+                    window.location.href = "/cart-list";
+                }
+            }).fail(function (jqXHR, textStatus, errorThrown) {
+                setFeedback(jqXHR);
+            });
+        });
+
+        // 물건 구매
+        $detailsBuyBtn.click(function (e) {
+            if (selectedDetailsList.length === 0) {
+                alert("구매할 물품을 선택해주세요.");
+                return;
+            }
+            // 구매하는 물건을 장바구니에 추가
+            $.ajax({
+                contentType: "application/json; charset=utf-8",
+                method: "POST",
+                url: "/cart/add/product/" + productId,
+                data: JSON.stringify({
+                    "itemList": selectedDetailsList,
+                    "orderCheck": true
+                })
+            }).done(function (data, status) {
+                window.location.href = "/order";
+            }).fail(function (jqXHR, textStatus, errorThrown) {
+                setFeedback(jqXHR);
+            });
+        });
+
+        // 리뷰 이미지 로딩
+        getImageReview();
+        function getImageReview() {
+            return new Promise(function (resolve, reject) {
+                if (!imageReviewHasNext) {
+                    resolve();
+                    return;
+                }
+                $.ajax({
+                    method: "GET",
+                    dataType: "json",
+                    url: "/product/" + productId + "/review/image?page=" + (imageReviewPage + 1),
+                }).done(function (data, status) {
+                    imageReviewPage = data.currentPage;
+                    imageReviewHasNext = data.hasNext;
+                    if (data.totalCount > 0) {
+                        renderImageReviewContent(data.reviewList);
+                        renderImageSliderBtn();
+                    }
+                    resolve();
+                });
+            });
+        }
+
+        function renderImageReviewContent(reviewList) {
+            const $reviewListFragment = $(document.createDocumentFragment());
+            reviewList.forEach((review, idx) => {
+                const {id, ...r} = review;
+                if (!imageReviewList[id]) { // 중복 제거
+                    imageReviewList[id] = r;
+
+                    const $reviewImageContainer = $(`<a href="#" class="review-image-container" data-bs-toggle="modal" data-bs-target="#reviewDetailsModal"></a>`)
+                        .append(`<div class="review-image-wrapper"><img src="${r.image}" class="review-image" alt="&times;" /></div>`);
+
+                    $reviewImageContainer.click(function (e) {
+                        $reviewDetailsImage.prop('src', r.image);
+                        $reviewDetailsColor.text(r.color);
+                        $reviewDetailsSize.text(r.size);
+                        $reviewDetailsRank.slice(0, r.rank).removeClass("fa-star-o").addClass("fa-star");
+                        $reviewDetailsRank.slice(r.rank).removeClass("fa-star").addClass("fa-star-o");
+                        $reviewDetailsEmail.text(r.email);
+                        $reviewDetailsDate.text(r.createdDateTime);
+                        $reviewDetailsContent.text(r.content);
+                    });
+                    $reviewListFragment.append($reviewImageContainer);
+                }
+            });
+
+            let reviewImageSlider = $reviewImageSliderWrapper.find(".review-image-slider")[0];
+            if (!reviewImageSlider) {
+                reviewImageSlider = $(`<div class="review-image-slider"></div>`);
+                $reviewImageSliderWrapper.append(reviewImageSlider).addClass("opened");
+            }
+            $(reviewImageSlider).append($reviewListFragment);
+        }
+
+        function renderImageSliderBtn() {
+            if ($reviewImageSliderWrapper.find(".image-slider-btn-group")[0]) return;
+
+            const $reviewImageSlider = $reviewImageSliderWrapper.find(".review-image-slider");
+            const $imageSliderBtnGroup = $("<div></div>").addClass("image-slider-btn-group");
+            const $imageSliderPrevBtn = $("<button></button>").prop("type", "button").addClass("image-slider-btn btn-prev")
+                .append($("<i></i>").addClass("fa fa-angle-left").prop("aria-hidden", "true"));
+            const $imageSliderNextBtn = $("<button></button>").prop("type", "button").addClass("image-slider-btn btn-next")
+                .append($("<i></i>").addClass("fa fa-angle-right").prop("aria-hidden", "true"));
+
+            $imageSliderPrevBtn.click(function (e) {
+                const x = getTranslateX($reviewImageSlider);
+                if (x >= 0) return; // 맨 앞인 경우
+
+                const distX = parseInt($reviewImageSlider.width());
+                let nextX = x + distX;
+                if (nextX > 0) nextX = 0;
+                $reviewImageSlider.css('transform', 'translate3d(' + nextX + 'px, 0px, 0px)');
+            });
+
+            $imageSliderNextBtn.click(function (e) {
+                const x = getTranslateX($reviewImageSlider);
+
+                const distX = parseInt($reviewImageSlider.width());
+                let nextX = x - distX;
+                if (nextX - distX < -$reviewImageSlider[0].scrollWidth) { // 맨 끝 이미지에 도달했고 다음 이미지가 모자라는 경우
+                    getImageReview().then(function () {
+                        if (nextX > -$reviewImageSlider[0].scrollWidth) { // 다음 슬라이드가 있는 경우
+                            $reviewImageSlider.css('transform', 'translate3d(' + nextX + 'px, 0px, 0px)');
+                        }
+                    });
+                } else {
+                    $reviewImageSlider.css('transform', 'translate3d(' + nextX + 'px, 0px, 0px)');
+                }
+            });
+
+            $imageSliderBtnGroup.append($imageSliderPrevBtn);
+            $imageSliderBtnGroup.append($imageSliderNextBtn);
+            $reviewImageSliderWrapper.append($imageSliderBtnGroup);
+
+            function getTranslateX(el) { // el은 jquery 변수
+                let transform = el.css('-webkit-transform') || el.css('transform');
+                return parseInt(transform.replace(/[^0-9\-.,]/g, '').split(',')[4]);
+            }
+        }
+
+        // 리뷰 로딩
+        getReview();
+        function getReview(reviewPage = 0) {
+            $.ajax({
+                method: "GET",
+                dataType: "json",
+                url: "/product/" + productId + "/review/content?page=" + reviewPage,
+            }).done(function (data, status) {
+                $reviewTotalCount.text(data.totalCount);
+                if (data.totalCount == 0) {
+                    $reviewList.html(`<div class="none-item">아직 리뷰 글이 없습니다.</div>`);
+                } else {
+                    renderReviewContent(data.reviewList);
+                    renderReviewPagination(data.hasPrevious, data.hasNext, data.startPage, data.currentPage, data.endPage);
+                }
+            });
+        }
+
+        function renderReviewContent(reviewList) {
+            const $reviewListFragment = $(document.createDocumentFragment());
+            reviewList.forEach((review, idx) => {
+                const rank = review.rank;
+                const $reviewRank = $(`<div class="star-wrapper"></div>`);
+                for (let i = 0; i < rank; i++) {
+                    $reviewRank.append(`<i class="fa fa-star"></i>`);
+                }
+                for (let i = rank; i < 5; i++) {
+                    $reviewRank.append(`<i class="fa fa-star-o"></i>`);
+                }
+
+                $reviewListFragment.append(`
+                    <li class="review-item-container">
+                        <div class="review-item">
+                            <div class="main-info">
+                                <div class="extra-info">
+                                    <div class="star-wrapper">
+                                        ${$reviewRank.html()}
+                                    </div>
+                                    <span style="padding-left: 15px;">${review.email}</span>
+                                </div>
+                                <div class="product-info text-muted">
+                                    [<span>${review.color}</span>]
+                                    [<span>${review.size}</span>mm] 구매
+                                </div>
+                                <div class="content">
+                                    <span style="white-space: pre;">${review.content}</span>
+                                </div>
+                            </div>
+                            <div class="sub-info">
+                                <div class="text-muted">${review.createdDateTime}</div>
+                                ${review.image == null ? '' :
+                                    `<div class="small-thumbnail-container">
+                                        <img src="${review.image}" class="thumbnail" alt="&times;" />
+                                    </div>`
+                                }
+                            </div>
+                        </div>
+                        ${review.image == null ? '' :
+                             `<div class="review-zoom-image-view">
+                                <div class="zoom-image-container">
+                                    <img src="${review.image}" class="zoom-image" alt="&times;" />
+                                </div>
+                            </div>`
+                        }
+                    </li>
+                `);
+            });
+            $reviewList.html($reviewListFragment);
+
+            // 확대된 리뷰 이미지 보기
+            const $reviewListItems = $reviewList.find("li.review-item-container");
+            const $reviewZoomImageView = $reviewListItems.find(".review-zoom-image-view");
+            $reviewListItems.click(function (e) {
+                const $currentReview = $(e.currentTarget).closest("li.review-item-container");
+                const $currentReviewZoomImageView = $currentReview.find(".review-zoom-image-view");
+
+                $reviewListItems.not($currentReview).removeClass('opened');
+                $currentReview.toggleClass('opened');
+                $reviewZoomImageView.not($currentReviewZoomImageView).hide();
+                $currentReviewZoomImageView.toggle();
+            });
+        }
+
+        function renderReviewPagination(hasPrevious, hasNext, startPage, currentPage, endPage) {
+            const $paginationFragment = $(document.createDocumentFragment());
+            const $previousLinkWrapper = $("<li></li>").addClass('page-item').addClass(hasPrevious ? '' : 'disabled');
+            const $previousLink = $("<a></a>").addClass('page-link')
+                .append(`<i class="fa fa-long-arrow-left" aria-hidden="true"></i>`)
+                .click(e => getReview(currentPage - 1));
+            $previousLinkWrapper.append($previousLink);
+            $paginationFragment.append($previousLinkWrapper);
+
+            const $paginationContent = $(`<div class="d-inline-flex justify-content-center"></div>`);
+            for (let i = startPage; i <= endPage; i++) {
+                const $li = $("<li></li>").addClass('page-item');
+                const $a = $("<a></a>").addClass('page-link').text(i + 1);
+                if (i === currentPage) {
+                    $li.addClass('active');
+                } else {
+                    $a.click(e => getReview(i));
+                }
+                $li.append($a);
+                $paginationContent.append($li);
+            }
+            $paginationFragment.append($paginationContent);
+
+            const $nextLinkWrapper = $("<li></li>").addClass('page-item').addClass(hasNext ? '' : 'disabled');
+            const $nextLink = $("<a></a>").addClass('page-link')
+                .append(`<i class="fa fa-long-arrow-right" aria-hidden="true"></i>`)
+                .click(e => getReview(currentPage + 1));
+            $nextLinkWrapper.append($nextLink);
+            $paginationFragment.append($nextLinkWrapper);
+
+            const $paginationWrapper = $("<div></div>").addClass("row justify-content-center")
+                .append($("<nav></nav>").addClass("col-md-9")
+                    .append($("<ul></ul>").addClass("pagination justify-content-between")
+                        .append($paginationFragment)));
+            $reviewListPagination.html($paginationWrapper);
+        }
+
+        // qna 작성 폼 열기
+        $qnaWriteBtn.click(function (e) {
+            if (!authenticated) {
+                window.location.href = "/login";
+                return;
+            }
+
+            $qnaWriteForm.find("select.type").val('');
+            $qnaWriteForm.find("textarea.content").val('');
+            $qnaWriteForm.find("input[type=checkbox].secret").prop('checked', false);
+            $qnaWriteForm.find(".invalid-feedback").text('').css('display', 'none');
+            $qnaWriteForm.css('display', 'block');
+        });
+
+        // qna 작성 폼 닫기
+        $qnaWriteFormCloseBtn.click(function (e) {
+            $qnaWriteForm.css('display', 'none');
+        });
+
+        // qna 작성 폼 처리
+        $qnaWriteForm.submit(function (e) {
+            e.preventDefault();
+            e.stopPropagation();
+
+            if (!authenticated) {
+                alert("로그인이 필요합니다.");
+                return;
+            }
+
+            const $type = $qnaWriteForm.find(".form-group > select.type");
+            const $content = $qnaWriteForm.find(".form-group > textarea.content");
+            const $secret = $qnaWriteForm.find(".form-group > input[type=checkbox].secret");
+
+            if ($type.val() === "") {
+                alert("문의종류를 선택해주세요.");
+                return;
+            }
+
+            if ($content.val() === "") {
+                alert("문의내용을 입력해주세요.");
+                return;
+            }
+
+            $.ajax({
+                contentType: "application/json; charset=utf-8",
+                method: "POST",
+                url: '/product/' + productId + '/write/qna',
+                data: JSON.stringify({
+                    "type": $type.val(),
+                    "content": $content.val(),
+                    "secret": $secret.prop('checked')
+                })
+            }).done(function (data, status) {
+                getQna();
+                alert("Q&A를 작성했습니다.");
+                $qnaWriteForm.hide();
+            }).fail(function (jqXHR, textStatus, errorThrown) {
+                setFeedback(jqXHR);
+            });
+        });
+
+        // qna 로딩
+        getQna();
+        function getQna(qnaPage = 0) {
+            $.ajax({
+                method: "GET",
+                dataType: "json",
+                url: "/product/" + productId + "/qna?page=" + qnaPage,
+            }).done(function (data, status) {
+                $qnaTotalCount.text(data.totalCount);
+                if (data.totalCount == 0) {
+                    $qnaList.html(`<div class="none-item">아직 Q&A 글이 없습니다.</div>`);
+                } else {
+                    renderQnaContent(data.qnaList);
+                    renderQnaPagination(data.hasPrevious, data.hasNext, data.startPage, data.currentPage, data.endPage);
+                }
+            });
+        }
+
+        function renderQnaContent(qnaList) {
+            const $qnaListFragment = $(document.createDocumentFragment());
+            qnaList.forEach((qna, idx) => {
+                const $qnaItem = $("<li></li>").addClass('qna-item-container');
+                $qnaItem.append(`
+                    <div class="qna-item">
+                        <div class="main-info">
+                            <div>${qna.type}</div>
+                            <div class="content">
+                                ${qna.hasNotPermission
+                                    ? `<div class="secret"><i class="fa fa-lock" aria-hidden="true"></i> 비밀글입니다.</div>`
+                                    : `<span style="white-space: pre;">${qna.content}</span>`}
+                            </div>
+                        </div>
+                        <div class="sub-info">
+                            <span>${qna.email}</span>
+                            <span>${qna.createdDateTime}</span>
+                            <button class="qna-reply-btn">${qna.answered ? 'Yes' : 'No'}</button>
+                        </div>
+                    </div>
+                    ${qna.answered && !qna.hasNotPermission ?
+                        `<div class="qna-reply">
+                            <div class="title">답변.</div>
+                            <div style="white-space: pre;">${qna.replyContent}</div>
+                        </div>` : ''
+                    }
+                `);
+                $qnaListFragment.append($qnaItem);
+            });
+            $qnaList.html($qnaListFragment);
+
+            // qna 답변 보기
+            const $qnaListItems = $qnaList.find("li.qna-item-container");
+            const $qnaReplies = $qnaListItems.find(".qna-reply");
+            $qnaListItems.click(function (e) {
+                const $currentQna = $(e.currentTarget).closest("li.qna-item-container");
+                const $currentQnaReply = $currentQna.find(".qna-reply");
+
+                $qnaListItems.not($currentQna).removeClass('opened');
+                $currentQna.toggleClass('opened');
+                $qnaReplies.not($currentQnaReply).hide();
+                $currentQnaReply.toggle();
+            });
+        }
+
+        function renderQnaPagination(hasPrevious, hasNext, startPage, currentPage, endPage) {
+            const $paginationFragment = $(document.createDocumentFragment());
+            const $previousLinkWrapper = $("<li></li>").addClass('page-item').addClass(hasPrevious ? '' : 'disabled');
+            const $previousLink = $("<a></a>").addClass('page-link')
+                .append(`<i class="fa fa-long-arrow-left" aria-hidden="true"></i>`)
+                .click(e => getQna(currentPage - 1));
+            $previousLinkWrapper.append($previousLink);
+            $paginationFragment.append($previousLinkWrapper);
+
+            const $paginationContent = $(`<div class="d-inline-flex justify-content-center"></div>`);
+            for (let i = startPage; i <= endPage; i++) {
+                const $li = $("<li></li>").addClass('page-item');
+                const $a = $("<a></a>").addClass('page-link').text(i + 1);
+                if (i === currentPage) {
+                    $li.addClass('active');
+                } else {
+                    $a.click(e => getQna(i));
+                }
+                $li.append($a);
+                $paginationContent.append($li);
+            }
+            $paginationFragment.append($paginationContent);
+
+            const $nextLinkWrapper = $("<li></li>").addClass('page-item').addClass(hasNext ? '' : 'disabled');
+            const $nextLink = $("<a></a>").addClass('page-link')
+                .append(`<i class="fa fa-long-arrow-right" aria-hidden="true"></i>`)
+                .click(e => getQna(currentPage + 1));
+            $nextLinkWrapper.append($nextLink);
+            $paginationFragment.append($nextLinkWrapper);
+
+            const $paginationWrapper = $("<div></div>").addClass("row justify-content-center")
+                .append($("<nav></nav>").addClass("col-md-9")
+                    .append($("<ul></ul>").addClass("pagination justify-content-between")
+                        .append($paginationFragment)));
+            $qnaListPagination.html($paginationWrapper);
+        }
+    });
+</script>
+
+</body>
+</html>

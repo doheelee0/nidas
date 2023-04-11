@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <div th:include="fragments.html :: head" th:remove="tag"></div>
+    <link rel="stylesheet" href="/css/admin.css">
+</head>
+<body>
+
+<div class="admin-page">
+    <div th:replace="fragments.html :: admin-page-sidebar(currentMenu = 'faq')"></div>
+    <div class="admin-page-contents">
+        <div class="admin-page-title">
+            <h2>FAQ 수정하기</h2>
+            <div th:replace="fragments.html :: backward(url = '/admin/management/faq')"></div>
+        </div>
+        <div class="admin-page-content-wrapper admin-form-wrapper">
+            <div th:replace="fragments.html :: admin-faq-form(url = '/admin/faq/' + ${id} + '/update', mode = 'edit')"></div>
+        </div>
+    </div>
+</div>
+
+<div th:include="fragments.html :: admin-common-js-func" th:remove="tag"></div>
+<div th:include="fragments.html :: summernote-editor" th:remove="tag"></div>
+<div th:replace="fragments.html :: ajax-csrf-header"></div>
+<div th:replace="fragments.html :: ajax-feedback-message"></div>
+<script type="application/javascript" th:inline="javascript">
+    $(function () {
+        const $type = $("#type");
+        const $title = $("#title");
+        const $content = $("#content");
+
+        const $typeFeedback = $type.siblings(".invalid-feedback");
+        const $titleFeedback = $title.siblings(".invalid-feedback");
+        const $contentFeedback = $content.siblings(".invalid-feedback");
+
+        /*<![CDATA[*/
+
+        const id = [[${id}]];
+
+        /*]]>*/
+
+        // submit 유효성 검사
+        $("form.admin-form").submit(function (e) {
+            e.preventDefault();
+            e.stopPropagation();
+
+            $typeFeedback.css('display', 'none');
+            $titleFeedback.css('display', 'none');
+            $contentFeedback.css('display', 'none');
+
+            let formValid = true;
+
+            if ($type.val() === "") {
+                $typeFeedback.text("종류를 선택해주세요.").css('display', 'block');
+                formValid = false;
+            }
+
+            if ($title.val() === "") {
+                $titleFeedback.text("제목을 입력해주세요.").css('display', 'block');
+                formValid = false;
+            }
+
+            if ($content.val() === "") {
+                $contentFeedback.text("내용을 입력해주세요.").css('display', 'block');
+                formValid = false;
+            }
+
+            if (formValid) {
+                $.ajax({
+                    contentType: "application/json; charset=utf-8",
+                    method: "POST",
+                    url: "/admin/faq/" + id + "/update",
+                    data: JSON.stringify({
+                        "type": $type.val(),
+                        "title": $title.val(),
+                        "content": $content.val()
+                    })
+                }).done(function (data, status) {
+                    alert("글을 수정했습니다.");
+                }).fail(function (jqXHR, textStatus, errorThrown) {
+                    setFeedback(jqXHR);
+                });
+            }
+        });
+    });
+</script>
+
+</body>
+</html>
