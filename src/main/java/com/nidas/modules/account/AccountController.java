@@ -80,7 +80,7 @@ public class AccountController {
     @PostMapping("/find-password")
     public String findPassword(String email, Model model, RedirectAttributes attributes) {
         Account account = accountRepository.findByEmail(email);
-        if (account == null || account.isDeleted() ) {
+        if (account == null || account.isDeleted()) {
             model.addAttribute("errorMessage", "존재하지 않는 계정입니다.");
             return "account/find-password";
         }
@@ -102,7 +102,7 @@ public class AccountController {
         }
         accountService.completePasswordFind(account);
         accountService.login(account);
-        model.addAttribute("successMessage", account.getName() + "님의 인증이 성공적으로 처리되었습니다.\n 계정설정에서 새 비밀번호로 변경해주세요.");
+        model.addAttribute("successMessage", account.getName() + "님의 인증이 성공적으로 처리되었습니다.\n 임시 비밀번호가 메일로 전송되었으니 확인하시고 비밀번호를 변경해주세요.");
         return "account/checked-email";
     }
 

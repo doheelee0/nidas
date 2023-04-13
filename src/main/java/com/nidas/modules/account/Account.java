@@ -106,10 +106,6 @@ public class Account {
         return this.passwordFindToken != null && this.passwordFindToken.equals(token);
     }
 
-    public void completePasswordFind() {
-        this.passwordFindToken = null;
-    }
-
     public boolean canSendPasswordFindToken() {
         return this.passwordFindTokenGeneratedDateTime == null
                 || LocalDateTime.now().isAfter(this.passwordFindTokenGeneratedDateTime.plusHours(1));

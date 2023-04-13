@@ -27,6 +27,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.UUID;
 
 @Service
 @Transactional
@@ -53,7 +54,7 @@ public class AccountService implements UserDetailsService {
         return accountRepository.save(account);
     }
 
-    public void sendEmailCheckToken(Account account) {
+    private void sendEmailCheckToken(Account account) {
         Context context = new Context();
         context.setVariable("name", account.getName());
         context.setVariable("link", "/check-email-token?token=" + account.getEmailCheckToken() + "&email=" + account.getEmail());
@@ -125,7 +126,28 @@ public class AccountService implements UserDetailsService {
     }
 
     public void completePasswordFind(Account account) {
-        account.completePasswordFind();
+        String password = UUID.randomUUID().toString().replace("-", "").substring(0, 20);
+        account.setPassword(passwordEncoder.encode(password));
+        account.setPasswordFindToken(null);
+        sendTempPassword(account, password);
+    }
+
+    private void sendTempPassword(Account account, String password) {
+        Context context = new Context();
+        context.setVariable("name", account.getName());
+        context.setVariable("link", "/mypage/edit/info");
+        context.setVariable("linkName", "비밀번호 변경하기");
+        context.setVariable("message", "새 비밀번호: " + password +
+                "\n임시 비밀번호로 로그인할 수 있으나 가급적이면 새 비밀번호로 변경해주세요.");
+        context.setVariable("host", appProperties.getHost());
+        String message = templateEngine.process("mail/simple-link", context);
+
+        EmailMessage emailMessage = EmailMessage.builder()
+                .to(account.getEmail())
+                .subject("Nidas - 임시 비밀번호 발급")
+                .message(message)
+                .build();
+        emailService.sendEmail(emailMessage);
     }
 
     public void editDetailsInfo(Account account, DetailsForm detailsForm) {
