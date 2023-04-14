@@ -22,7 +22,7 @@
                 <thead>
                 <tr>
                     <th scope="col" class="all-select-checkbox">
-                        <input type="checkbox" class="option-checkbox" />
+                        <input type="checkbox" class="option-checkbox" autocomplete="off" />
                         <span class="all-select-checkbox-message">전체 선택</span>
                     </th>
                     <th scope="col">상품정보</th>
@@ -38,7 +38,7 @@
                          discountedPrice=${p.getDiscountedPrice()},
                          orderPrice=${c.quantity * discountedPrice},
                          duration = ${c.createdDateTime.plusDays(30)}" th:data-cart-id="${c.id}" th:data-discounted-price="${discountedPrice}">
-                    <td scope="row" class="cart-item-checkbox"><input type="checkbox" class="option-checkbox" /></td>
+                    <td scope="row" class="cart-item-checkbox"><input type="checkbox" class="option-checkbox" autocomplete="off" /></td>
                     <td class="cart-item-details">
                         <div class="cart-item-product-details-wrapper">
                             <div class="cart-item-product-details">

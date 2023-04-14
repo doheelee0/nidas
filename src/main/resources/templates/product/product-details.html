@@ -11,7 +11,7 @@
 <div class="container">
     <div class="product-details-top">
         <div class="product-details-image-view">
-            <div class="carousel slide product-details-image-slider" data-bs-ride="carousel" data-bs-interval="false">
+            <div class="carousel slide product-details-image-slider">
                 <div class="carousel-indicators">
                     <button th:each="pi : ${product.getImages()}" type="button" data-bs-target=".product-details-image-slider"
                             th:data-bs-slide-to="${piStat.index}" th:classappend="${piStat.index == 0 ? 'active' : ''}"
