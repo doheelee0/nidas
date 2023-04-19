@@ -68,8 +68,21 @@ public class ReviewService {
     }
 
     public void delete(Review review, Account account) {
-        review.setDeleted(true);
-        accountService.updateMileage(account, -review.getEarnedMileage());
-        productService.updateReviewInfo(review.getProduct(), -review.getRank(), -1);
+        if (review.isDeletable()) {
+            review.setDeleted(true);
+            accountService.updateMileage(account, -review.getEarnedMileage());
+            productService.updateReviewInfo(review.getProduct(), -review.getRank(), -1);
+        } else {
+            throw new InvalidParameterException("리뷰를 삭제할 수 없습니다.");
+        }
+    }
+
+    public void delete(Review review) {
+        if (review.isDeletable()) {
+            review.setDeleted(true);
+            productService.updateReviewInfo(review.getProduct(), -review.getRank(), -1);
+        } else {
+            throw new InvalidParameterException("리뷰를 삭제할 수 없습니다.");
+        }
     }
 }

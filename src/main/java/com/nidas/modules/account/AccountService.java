@@ -186,6 +186,7 @@ public class AccountService implements UserDetailsService {
 
     public void updateMileage(Account account, Integer mileage) {
         account.setMileage(account.getMileage() + mileage);
+        accountRepository.save(account);
     }
 
     public Account getAccount(Long id) {

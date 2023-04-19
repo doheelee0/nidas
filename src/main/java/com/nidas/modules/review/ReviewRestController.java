@@ -119,7 +119,7 @@ public class ReviewRestController {
         }
         Account account = accountService.getAccount(reviewIdForm.getAccountId());
         Review review = reviewService.getReview(reviewIdForm.getReviewId(), account);
-        reviewService.delete(review, account);
+        reviewService.delete(review);
         return ResponseEntity.ok().build();
     }
 

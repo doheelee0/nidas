@@ -82,4 +82,8 @@ public class Review {
     public boolean isEditable() {
         return this.createdDateTime.isAfter(LocalDateTime.now().minusMonths(3));
     }
+
+    public boolean isDeletable() {
+        return !this.deleted;
+    }
 }
