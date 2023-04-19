@@ -58,8 +58,8 @@ public class Returns {
     @OneToOne(fetch = FetchType.LAZY)
     private OrderDetails orderDetails;
 
-    public boolean isNotCompleted() {
+    public boolean isAlreadyCompleted() {
         OrderStatus status = this.orderDetails.getStatus();
-        return this.completedDateTime == null && (status == OrderStatus.EXCHANGING || status == OrderStatus.RETURNING);
+        return this.completedDateTime != null && (status == OrderStatus.EXCHANGED || status == OrderStatus.RETURNED);
     }
 }

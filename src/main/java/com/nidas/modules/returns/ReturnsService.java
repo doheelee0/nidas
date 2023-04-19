@@ -58,7 +58,7 @@ public class ReturnsService {
     }
 
     public void delete(Returns returns) {
-        if (!returns.isNotCompleted()) {
+        if (returns.isAlreadyCompleted()) {
             throw new InvalidParameterException("해당하는 반품신청을 취소할 수 없는 상태입니다.");
         }
         orderService.updateStatus(returns.getOrderDetails(), OrderStatus.DELIVERED, false);
@@ -66,8 +66,8 @@ public class ReturnsService {
     }
 
     public void complete(Returns returns, Account account) {
-        if (!returns.isNotCompleted()) {
-            throw new InvalidParameterException("해당하는 반품신청을 완료할 수 없는 상태입니다.");
+        if (returns.isAlreadyCompleted()) {
+            throw new InvalidParameterException("해당하는 반품신청은 이미 완료된 상태입니다.");
         }
         OrderDetails orderDetails = returns.getOrderDetails();
         if (orderDetails.getStatus() == OrderStatus.RETURNING) {
